@@ -1,4 +1,8 @@
-use actix_web::{App, HttpRequest, HttpServer, Responder, web};
+use actix_web::{App, HttpRequest, HttpResponse, HttpServer, Responder, web};
+
+async fn health_check() -> impl Responder {
+    HttpResponse::Ok()
+}
 
 async fn greet(req: HttpRequest) -> impl Responder {
     let name = req.match_info().get("name").unwrap_or("World");
@@ -9,6 +13,7 @@ async fn greet(req: HttpRequest) -> impl Responder {
 async fn main() -> Result<(), std::io::Error> {
     HttpServer::new(|| {
         App::new()
+            .route("/health_check", web::get().to(health_check))
             .route("/", web::get().to(greet))
             .route("/{name}", web::get().to(greet))
     })
