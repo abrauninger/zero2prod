@@ -51,6 +51,12 @@ docker exec -it "${CONTAINER_NAME}" psql -U "${SUPERUSER}" -c "${CREATE_QUERY}"
 GRANT_QUERY="ALTER USER ${APP_USER} CREATEDB;"
 docker exec -it "${CONTAINER_NAME}" psql -U "${SUPERUSER}" -c "${GRANT_QUERY}"
 
+>&2 echo "Postgres is up and running on port ${DB_PORT} - running migrations now!"
+
+# Create the application database
 DATABASE_URL=postgres://${APP_USER}:${APP_USER_PWD}@localhost:${DB_PORT}/${APP_DB_NAME}
 export DATABASE_URL
 sqlx database create
+sqlx migrate run
+
+>&2 echo "Postgres ha been migrated, ready to go!"
