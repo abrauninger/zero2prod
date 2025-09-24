@@ -15,6 +15,10 @@ CONTAINER_NAME="postgres"
 docker run \
     --env POSTGRES_USER=${SUPERUSER} \
     --env POSTGRES_PASSWORD=${SUPERUSER_PWD} \
+    --health-cmd="pg_isready -U ${SUPERUSER} || exit 1" \
+    --health-interval=1s \
+    --health-timeout=5s \
+    --health-retries=5 \
     --publish "${DB_PORT}":5432 \
     --detach \
     --name "${CONTAINER_NAME}" \
