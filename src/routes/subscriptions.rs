@@ -6,6 +6,6 @@ pub async fn subscribe(_form: web::Form<FormData>) -> HttpResponse {
 
 #[derive(serde::Deserialize)]
 pub struct FormData {
-    email: String,
-    name: String,
+    _email: String,
+    _name: String,
 }
