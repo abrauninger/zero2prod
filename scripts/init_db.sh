@@ -10,7 +10,7 @@ APP_USER="${APP_USER:=app}"
 APP_USER_PWD="${APP_USER_PWD:=secret}"
 APP_DB_NAME="${APP_DB_NAME:=newsletter}"
 
-# Launch postgres using Docker
+# Launch Postgres using Docker
 CONTAINER_NAME="postgres"
 docker run \
     --env POSTGRES_USER=${SUPERUSER} \
@@ -21,10 +21,21 @@ docker run \
     postgres -N 1000
     # ^-- Increased maximum number of connections for testing purposes
 
+# Wait for Postgres to be ready to accept connections
+until [ \
+    "$(docker inspect -f "{{.State.Health.Status}}" ${CONTAINER_NAME})" == \
+    "healthy" \
+]; do
+    >&2 echo "Postgres is still unavailable - sleeping"
+    sleep 1
+done
+
+>&2 echo "Postgres is up and running on port "${DB_PORT}!
+
 # Create the application user
 CREATE_QUERY="CREATE USER ${APP_USER} WITH PASSWORD '${APP_USER_PWD}';"
 docker exec -it "${CONTAINER_NAME}" psql -U "${SUPERUSER}" -c "${CREATE_QUERY}"
 
-# Grant create db privileges to the app user
+# Grant create DB privileges to the app user
 GRANT_QUERY="ALTER USER ${APP_USER} CREATEDB;"
 docker exec -it "${CONTAINER_NAME}" psql -U "${SUPERUSER}" -c "${GRANT_QUERY}"
