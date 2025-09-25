@@ -3,6 +3,7 @@ use std::net::TcpListener;
 use sqlx::{Connection, Executor, PgConnection, PgPool};
 use uuid::Uuid;
 use zero2prod::configuration::{DatabaseSettings, get_configuration};
+use zero2prod::telemetry;
 
 #[tokio::test]
 async fn health_check_works() {
@@ -83,6 +84,9 @@ async fn subscribe_returns_a_400_when_data_is_missing() {
 }
 
 async fn spawn_app() -> TestApp {
+    let subscriber = telemetry::get_subscriber("test".into(), "debug".into());
+    telemetry::init_subscriber(subscriber);
+
     let listener = TcpListener::bind("127.0.0.1:0").expect("Failed to bind random port");
     let port = listener.local_addr().unwrap().port();
     let address = format!("http://127.0.0.1:{}", port);
