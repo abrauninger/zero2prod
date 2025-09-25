@@ -1,16 +1,12 @@
 use sqlx::PgPool;
 use std::net::TcpListener;
-use tracing::{Subscriber, subscriber::set_global_default};
-use tracing_bunyan_formatter::{BunyanFormattingLayer, JsonStorageLayer};
-use tracing_log::LogTracer;
-use tracing_subscriber::{EnvFilter, Registry, layer::SubscriberExt};
-use zero2prod::{configuration::get_configuration, startup::run};
+use zero2prod::{configuration::get_configuration, startup::run, telemetry};
 
 #[tokio::main]
 async fn main() -> Result<(), std::io::Error> {
     // TODO: Why isn't this just one function?
-    let subscriber = get_tracing_subscriber("zero2prod".into(), "info".into());
-    init_tracing_subscriber(subscriber);
+    let subscriber = telemetry::get_tracing_subscriber("zero2prod".into(), "info".into());
+    telemetry::init_tracing_subscriber(subscriber);
 
     // Panic if we can't read configuration
     let configuration = get_configuration().expect("Failed to read configuration.");
@@ -21,22 +17,4 @@ async fn main() -> Result<(), std::io::Error> {
     let address = format!("127.0.0.1:{}", configuration.application_port);
     let listener = TcpListener::bind(address).expect("Failed to bind to port.");
     run(listener, connection_pool)?.await
-}
-
-fn get_tracing_subscriber(name: String, env_filter: String) -> impl Subscriber {
-    let env_filter =
-        EnvFilter::try_from_default_env().unwrap_or_else(|_| EnvFilter::new(env_filter));
-    let formatting_layer = BunyanFormattingLayer::new(name, std::io::stdout);
-
-    Registry::default()
-        .with(env_filter)
-        .with(JsonStorageLayer)
-        .with(formatting_layer)
-}
-
-fn init_tracing_subscriber(subscriber: impl Subscriber + Send + Sync) {
-    // Set up tracing
-    // Redirect all `log` events to our subscriber
-    LogTracer::init().expect("Failed to set logger");
-    set_global_default(subscriber).expect("Failed to set subscriber");
 }
