@@ -4,7 +4,7 @@ use std::sync::LazyLock;
 use sqlx::{Connection, Executor, PgConnection, PgPool};
 use uuid::Uuid;
 use zero2prod::configuration::{DatabaseSettings, get_configuration};
-use zero2prod::telemetry::{self, get_subscriber, init_subscriber};
+use zero2prod::telemetry::{get_subscriber, init_subscriber};
 
 #[tokio::test]
 async fn health_check_works() {
@@ -84,6 +84,7 @@ async fn subscribe_returns_a_400_when_data_is_missing() {
     }
 }
 
+#[allow(clippy::let_underscore_future)]
 async fn spawn_app() -> TestApp {
     LazyLock::force(&TRACING);
 
