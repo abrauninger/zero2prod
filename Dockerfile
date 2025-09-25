@@ -7,9 +7,19 @@ COPY . .
 ENV SQLX_OFFLINE true
 RUN cargo build --release
 
-FROM rust:1.90.0-slim as runtime
-
+FROM debian:bookworm-slim as runtime
 WORKDIR /app
+
+# Install OpenSLL - it is dynamically linked by some of our dependencies
+# Install ca-certificates - it is needed to verify TLS certificates
+# when establishing HTTPS connections
+RUN apt-get update -y \
+    && apt-get install -y --no-install-recommends openssl ca-certificates \
+    # Clean up
+    && apt-get autoremove -y \
+    && apt-get clean -y \
+    && rm -rf /var/lib/apt/lists/*
+
 COPY --from=builder /app/target/release/zero2prod zero2prod
 # We need the configuration file at runtime
 COPY configuration.yaml configuration.yaml
