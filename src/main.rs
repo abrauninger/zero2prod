@@ -8,13 +8,9 @@ use zero2prod::{configuration::get_configuration, startup::run};
 
 #[tokio::main]
 async fn main() -> Result<(), std::io::Error> {
-    // Set up tracing
-    // Redirect all `log` events to our subscriber
-    LogTracer::init().expect("Failed to set logger");
-
-    let subscriber = get_tracing_subscriber("zero2prod".into(), "into".into());
-
-    set_global_default(subscriber).expect("Failed to set subscriber");
+    // TODO: Why isn't this just one function?
+    let subscriber = get_tracing_subscriber("zero2prod".into(), "info".into());
+    init_tracing_subscriber(subscriber);
 
     // Panic if we can't read configuration
     let configuration = get_configuration().expect("Failed to read configuration.");
@@ -36,4 +32,11 @@ fn get_tracing_subscriber(name: String, env_filter: String) -> impl Subscriber {
         .with(env_filter)
         .with(JsonStorageLayer)
         .with(formatting_layer)
+}
+
+fn init_tracing_subscriber(subscriber: impl Subscriber + Send + Sync) {
+    // Set up tracing
+    // Redirect all `log` events to our subscriber
+    LogTracer::init().expect("Failed to set logger");
+    set_global_default(subscriber).expect("Failed to set subscriber");
 }
