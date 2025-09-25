@@ -1,4 +1,5 @@
 use std::net::TcpListener;
+use std::sync::LazyLock;
 
 use sqlx::{Connection, Executor, PgConnection, PgPool};
 use uuid::Uuid;
@@ -84,8 +85,7 @@ async fn subscribe_returns_a_400_when_data_is_missing() {
 }
 
 async fn spawn_app() -> TestApp {
-    let subscriber = telemetry::get_subscriber("test".into(), "debug".into());
-    telemetry::init_subscriber(subscriber);
+    LazyLock::force(&TRACING);
 
     let listener = TcpListener::bind("127.0.0.1:0").expect("Failed to bind random port");
     let port = listener.local_addr().unwrap().port();
@@ -107,6 +107,12 @@ async fn spawn_app() -> TestApp {
         db_pool: connection_pool,
     }
 }
+
+// Ensure that the `tracing` static is only initialized once using `LazyLock`.
+static TRACING: LazyLock<()> = LazyLock::new(|| {
+    let subscriber = telemetry::get_subscriber("test".into(), "debug".into());
+    telemetry::init_subscriber(subscriber);
+});
 
 struct TestApp {
     address: String,
