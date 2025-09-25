@@ -4,7 +4,7 @@ use std::sync::LazyLock;
 use sqlx::{Connection, Executor, PgConnection, PgPool};
 use uuid::Uuid;
 use zero2prod::configuration::{DatabaseSettings, get_configuration};
-use zero2prod::telemetry;
+use zero2prod::telemetry::{self, get_subscriber, init_subscriber};
 
 #[tokio::test]
 async fn health_check_works() {
@@ -110,8 +110,16 @@ async fn spawn_app() -> TestApp {
 
 // Ensure that the `tracing` static is only initialized once using `LazyLock`.
 static TRACING: LazyLock<()> = LazyLock::new(|| {
-    let subscriber = telemetry::get_subscriber("test".into(), "debug".into());
-    telemetry::init_subscriber(subscriber);
+    let default_filter_level = "info".to_string();
+    let subscriber_name = "test".to_string();
+
+    if std::env::var("TEST_LOG").is_ok() {
+        let subscriber = get_subscriber(subscriber_name, default_filter_level, std::io::stdout);
+        init_subscriber(subscriber);
+    } else {
+        let subscriber = get_subscriber(subscriber_name, default_filter_level, std::io::sink);
+        init_subscriber(subscriber);
+    }
 });
 
 struct TestApp {
