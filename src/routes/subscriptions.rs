@@ -4,19 +4,16 @@ use sqlx::PgPool;
 use tracing::Instrument;
 use uuid::Uuid;
 
-pub async fn subscribe(form: web::Form<FormData>, pool: web::Data<PgPool>) -> HttpResponse {
-    let request_id = Uuid::new_v4();
-
-    let request_span = tracing::info_span!(
-        "Adding a new subscriber.",
-        %request_id,
+#[tracing::instrument(
+    name = "Adding a new subscriber.",
+    skip(form, pool),
+    fields(
+        request_id = %Uuid::new_v4(),
         subscriber_email = %form.email,
         subscriber_name = %form.name
-    );
-
-    // DANGER: Don't actually call `enter` in an async function!
-    let _request_span_guard = request_span.enter();
-
+    )
+)]
+pub async fn subscribe(form: web::Form<FormData>, pool: web::Data<PgPool>) -> HttpResponse {
     let query_span = tracing::info_span!("Saving new subscriber details in the database");
 
     match sqlx::query!(
