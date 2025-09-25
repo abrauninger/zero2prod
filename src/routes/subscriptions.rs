@@ -35,7 +35,7 @@ pub async fn subscribe(form: web::Form<FormData>, pool: web::Data<PgPool>) -> Ht
     {
         Ok(_) => HttpResponse::Ok().finish(),
         Err(e) => {
-            tracing::error!("request_id {request_id} - Failed to execute query: {e:?}");
+            tracing::error!("Failed to execute query: {e:?}");
             HttpResponse::InternalServerError().finish()
         }
     }
