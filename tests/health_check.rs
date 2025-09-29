@@ -54,7 +54,7 @@ async fn subscribe_returns_a_200_for_valid_form_data() {
     assert_eq!(saved.name, "le guin");
 }
 
-//#[tokio::test]
+#[tokio::test]
 async fn subscribe_returns_a_400_when_fields_are_present_but_empty() {
     // Arrange
     let app = spawn_app().await;
