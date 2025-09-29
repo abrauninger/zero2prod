@@ -11,6 +11,7 @@ async fn main() -> Result<(), std::io::Error> {
 
     // Panic if we can't read configuration
     let configuration = get_configuration().expect("Failed to read configuration.");
+
     let connection_pool = PgPool::connect_with(configuration.database.connect_options())
         .await
         .expect("Failed to connect to Postgres");
@@ -19,10 +20,14 @@ async fn main() -> Result<(), std::io::Error> {
         .email_client
         .sender()
         .expect("Invalid sender email address.");
+
+    let timeout = configuration.email_client.timeout();
+
     let email_client = EmailClient::new(
         configuration.email_client.base_url,
         sender_email,
         configuration.email_client.authorization_token,
+        timeout,
     );
 
     let address = format!(
