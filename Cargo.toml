@@ -43,3 +43,6 @@ features = [
 [dev-dependencies]
 fake = "2.9"
 reqwest = "0.12"
+quickcheck = "1.0.3"
+quickcheck_macros = "1"
+rand = "0.8"
