@@ -13,27 +13,12 @@ use uuid::Uuid;
     )
 )]
 pub async fn subscribe(form: web::Form<FormData>, pool: web::Data<PgPool>) -> HttpResponse {
-    if !is_valid_name(&form.name) {
-        return HttpResponse::BadRequest().finish();
-    }
+    let subscriber_name = crate::domain::SubscriberName::parse(form.name.clone());
 
     match insert_subscriber(&pool, &form).await {
         Ok(_) => HttpResponse::Ok().finish(),
         Err(_) => HttpResponse::InternalServerError().finish(),
     }
-}
-
-/// Returns `true` if the input satisfies all our validation constraints on subscriber names,
-/// `false` otherwise.
-fn is_valid_name(s: &str) -> bool {
-    let is_empty_or_whitespace = s.trim().is_empty();
-
-    let is_too_long = s.graphemes(true).count() > 256;
-
-    let forbidden_characters = ['/', '(', ')', '"', '<', '>', '\\', '{', '}'];
-    let contains_forbidden_characters = s.chars().any(|c| forbidden_characters.contains(&c));
-
-    !(is_empty_or_whitespace || is_too_long || contains_forbidden_characters)
 }
 
 #[tracing::instrument(
