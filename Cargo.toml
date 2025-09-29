@@ -28,6 +28,11 @@ unicode-segmentation = "1"
 uuid = { version = "1", features = ["v4"] }
 validator = "0.18"
 
+[dependencies.reqwest]
+version = "0.12"
+default-features = false
+features = ["json", "rustls-tls"]
+
 [dependencies.sqlx]
 version = "0.8"
 default-features = false
@@ -42,7 +47,6 @@ features = [
 
 [dev-dependencies]
 fake = "2.9"
-reqwest = "0.12"
 quickcheck = "1.0.3"
 quickcheck_macros = "1"
 rand = "0.8"
