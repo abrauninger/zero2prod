@@ -1,4 +1,5 @@
-use actix_web::{HttpResponse, web};
+use actix_web::{HttpResponse, ResponseError, http::StatusCode, web};
+use anyhow::Context;
 use sqlx::PgPool;
 use uuid::Uuid;
 
@@ -8,19 +9,23 @@ pub struct Parameters {
 }
 
 #[tracing::instrument(name = "Confirm a pending subscriber", skip(parameters, pool))]
-pub async fn confirm(parameters: web::Query<Parameters>, pool: web::Data<PgPool>) -> HttpResponse {
-    let id = match get_subscriber_id_from_token(&pool, &parameters.subscription_token).await {
-        Ok(id) => id,
-        Err(_) => return HttpResponse::InternalServerError().finish(),
-    };
+pub async fn confirm(
+    parameters: web::Query<Parameters>,
+    pool: web::Data<PgPool>,
+) -> Result<HttpResponse, ConfirmError> {
+    let id = get_subscriber_id_from_token(&pool, &parameters.subscription_token)
+        .await
+        .context("Unable to get subscriber ID that matches token")?;
 
     match id {
-        None => HttpResponse::Unauthorized().finish(),
+        None => Err(ConfirmError::InvalidTokenError(
+            parameters.subscription_token.clone(),
+        )),
         Some(subscriber_id) => {
-            if confirm_subscriber(&pool, subscriber_id).await.is_err() {
-                return HttpResponse::InternalServerError().finish();
-            }
-            HttpResponse::Ok().finish()
+            confirm_subscriber(&pool, subscriber_id)
+                .await
+                .context("Unable to confirm subscriber")?;
+            Ok(HttpResponse::Ok().finish())
         }
     }
 }
@@ -59,4 +64,22 @@ pub async fn get_subscriber_id_from_token(
     })?;
 
     Ok(result.map(|r| r.subscriber_id))
+}
+
+#[derive(Debug, thiserror::Error)]
+pub enum ConfirmError {
+    #[error("Token '{0}' is invalid")]
+    InvalidTokenError(String),
+
+    #[error(transparent)]
+    UnexpectedError(#[from] anyhow::Error),
+}
+
+impl ResponseError for ConfirmError {
+    fn status_code(&self) -> StatusCode {
+        match self {
+            ConfirmError::InvalidTokenError(_) => StatusCode::UNAUTHORIZED,
+            ConfirmError::UnexpectedError(_) => StatusCode::INTERNAL_SERVER_ERROR,
+        }
+    }
 }
