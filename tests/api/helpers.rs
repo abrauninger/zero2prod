@@ -1,22 +1,16 @@
 use secrecy::Secret;
 use sqlx::{Connection, Executor, PgConnection, PgPool};
-use std::net::TcpListener;
 use std::sync::LazyLock;
 use uuid::Uuid;
 use zero2prod::configuration::{DatabaseSettings, get_configuration};
-use zero2prod::email_client::EmailClient;
-use zero2prod::startup::{build, get_connection_pool};
+use zero2prod::startup::{Application, get_connection_pool};
 use zero2prod::telemetry::{get_subscriber, init_subscriber};
 
 #[allow(clippy::let_underscore_future)]
 pub async fn spawn_app() -> TestApp {
     LazyLock::force(&TRACING);
 
-    let listener = TcpListener::bind("127.0.0.1:0").expect("Failed to bind random port");
-    let port = listener.local_addr().unwrap().port();
-    let address = format!("http://127.0.0.1:{}", port);
-
-    let mut configuration = {
+    let configuration = {
         let mut c = get_configuration().expect("Failed to read configuration.");
 
         // Randomize the database name so that each test uses its own database.
@@ -29,14 +23,15 @@ pub async fn spawn_app() -> TestApp {
 
     configure_database(&configuration.database).await;
 
-    let server = build(configuration)
+    let application = Application::build(configuration.clone())
         .await
         .expect("Failed to build application");
 
-    let _ = tokio::spawn(server);
+    let address = format!("http://127.0.0.1:{}", application.port());
+    let _ = tokio::spawn(application.run_until_stopped());
 
     TestApp {
-        address: todo!(),
+        address,
         db_pool: get_connection_pool(&configuration.database),
     }
 }
