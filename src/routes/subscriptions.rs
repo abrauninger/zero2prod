@@ -18,6 +18,7 @@ pub async fn subscribe(
     form: web::Form<FormData>,
     pool: web::Data<PgPool>,
     email_client: web::Data<EmailClient>,
+    base_url: web::Data<String>,
 ) -> HttpResponse {
     let new_subscriber = match form.0.try_into() {
         Ok(name) => name,
@@ -28,7 +29,7 @@ pub async fn subscribe(
         return HttpResponse::InternalServerError().finish();
     }
 
-    if send_confirmation_email(&email_client, new_subscriber)
+    if send_confirmation_email(&email_client, new_subscriber, &base_url)
         .await
         .is_err()
     {
@@ -55,8 +56,9 @@ impl TryFrom<FormData> for NewSubscriber {
 async fn send_confirmation_email(
     email_client: &EmailClient,
     new_subscriber: NewSubscriber,
+    base_url: &str,
 ) -> Result<(), reqwest::Error> {
-    let confirmation_link = "https://there-is-no-such-domain.com/subscriptions/confirm";
+    let confirmation_link = format!("{base_url}/subscriptions/confirm");
 
     let html_body = format!(
         "Welcome to our newsletter!<br />\
