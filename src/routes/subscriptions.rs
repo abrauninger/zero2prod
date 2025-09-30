@@ -108,10 +108,7 @@ async fn store_token(
         subscriber_id,
     );
 
-    transaction.execute(query).await.map_err(|e| {
-        tracing::error!("Failed to execute query: {e:?}");
-        StoreTokenError(e)
-    })?;
+    transaction.execute(query).await.map_err(StoreTokenError)?;
 
     Ok(())
 }
@@ -200,10 +197,7 @@ async fn insert_subscriber(
         Utc::now(),
     );
 
-    transaction.execute(query).await.map_err(|e| {
-        tracing::error!("Failed to execute query: {e:?}");
-        e
-    })?;
+    transaction.execute(query).await?;
 
     Ok(subscriber_id)
 }
