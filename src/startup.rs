@@ -1,4 +1,4 @@
-use crate::configuration::Settings;
+use crate::configuration::{DatabaseSettings, Settings};
 use crate::email_client::EmailClient;
 use crate::routes::{health_check, subscribe};
 use actix_web::{
@@ -7,13 +7,12 @@ use actix_web::{
     web::{self, Data},
 };
 use sqlx::PgPool;
+use sqlx::postgres::PgPoolOptions;
 use std::net::TcpListener;
 use tracing_actix_web::TracingLogger;
 
 pub async fn build(configuration: Settings) -> Result<Server, std::io::Error> {
-    let connection_pool = PgPool::connect_with(configuration.database.connect_options())
-        .await
-        .expect("Failed to connect to Postgres");
+    let connection_pool = get_connection_pool(&configuration.database);
 
     let sender_email = configuration
         .email_client
@@ -35,6 +34,10 @@ pub async fn build(configuration: Settings) -> Result<Server, std::io::Error> {
     );
     let listener = TcpListener::bind(address).expect("Failed to bind to port.");
     run(listener, connection_pool, email_client)
+}
+
+pub fn get_connection_pool(configuration: &DatabaseSettings) -> PgPool {
+    PgPoolOptions::new().connect_lazy_with(configuration.connect_options())
 }
 
 pub fn run(

@@ -5,6 +5,7 @@ use std::sync::LazyLock;
 use uuid::Uuid;
 use zero2prod::configuration::{DatabaseSettings, get_configuration};
 use zero2prod::email_client::EmailClient;
+use zero2prod::startup::{build, get_connection_pool};
 use zero2prod::telemetry::{get_subscriber, init_subscriber};
 
 #[allow(clippy::let_underscore_future)]
@@ -15,34 +16,28 @@ pub async fn spawn_app() -> TestApp {
     let port = listener.local_addr().unwrap().port();
     let address = format!("http://127.0.0.1:{}", port);
 
-    let mut configuration = get_configuration().expect("Failed to read configuration.");
+    let mut configuration = {
+        let mut c = get_configuration().expect("Failed to read configuration.");
 
-    // Randomize the database name so that each test uses its own database.
-    configuration.database.database_name = Uuid::new_v4().to_string();
+        // Randomize the database name so that each test uses its own database.
+        c.database.database_name = Uuid::new_v4().to_string();
 
-    let connection_pool = configure_database(&configuration.database).await;
+        // Use a random OS port
+        c.application.port = 0;
+        c
+    };
 
-    let sender_email = configuration
-        .email_client
-        .sender()
-        .expect("Invalid sender email address");
+    configure_database(&configuration.database).await;
 
-    let timeout = configuration.email_client.timeout();
+    let server = build(configuration)
+        .await
+        .expect("Failed to build application");
 
-    let email_client = EmailClient::new(
-        configuration.email_client.base_url,
-        sender_email,
-        configuration.email_client.authorization_token,
-        timeout,
-    );
-
-    let server = zero2prod::startup::run(listener, connection_pool.clone(), email_client)
-        .expect("Failed to bind address");
     let _ = tokio::spawn(server);
 
     TestApp {
-        address,
-        db_pool: connection_pool,
+        address: todo!(),
+        db_pool: get_connection_pool(&configuration.database),
     }
 }
 
