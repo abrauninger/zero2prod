@@ -1,3 +1,4 @@
+use actix_web::http::StatusCode;
 use actix_web::{HttpResponse, ResponseError, web};
 use chrono::Utc;
 use rand::distributions::Alphanumeric;
@@ -63,7 +64,16 @@ pub enum SubscribeError {
     SendEmailError(reqwest::Error),
 }
 
-impl ResponseError for SubscribeError {}
+impl ResponseError for SubscribeError {
+    fn status_code(&self) -> StatusCode {
+        match self {
+            SubscribeError::ValidationError(_) => StatusCode::BAD_REQUEST,
+            SubscribeError::DatabaseError(_)
+            | SubscribeError::StoreTokenError(_)
+            | SubscribeError::SendEmailError(_) => StatusCode::INTERNAL_SERVER_ERROR,
+        }
+    }
+}
 
 impl From<String> for SubscribeError {
     fn from(e: String) -> Self {
