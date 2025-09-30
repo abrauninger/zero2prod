@@ -58,16 +58,17 @@ async fn send_confirmation_email(
 ) -> Result<(), reqwest::Error> {
     let confirmation_link = "https://there-is-no-such-domain.com/subscriptions/confirm";
 
+    let html_body = format!(
+        "Welcome to our newsletter!<br />\
+        Click <a href=\"{confirmation_link}\">here</a> to confirm your subscription."
+    );
+
+    let plain_body = format!(
+        "Welcome to our newsletter!\nVisit {confirmation_link} to confirm your subscription."
+    );
+
     email_client
-        .send_email(
-            new_subscriber.email,
-            "Welcome!",
-            &format!(
-                "Welcome to our newsletter!<br />\
-                Click <a href=\"{confirmation_link}\">here</a> to confirm your subscription."
-            ),
-            &format!("Welcome to our newsletter!\nVisit {confirmation_link} to confirm your subscription.")
-        )
+        .send_email(new_subscriber.email, "Welcome!", &html_body, &plain_body)
         .await
 }
 
