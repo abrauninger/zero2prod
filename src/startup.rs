@@ -72,7 +72,7 @@ pub fn run(
     // Wrap the pool in a smart pointer
     let db_pool = Data::new(db_pool);
     let email_client = Data::new(email_client);
-    let base_url = Data::new(base_url);
+    let base_url = Data::new(ApplicationBaseUrl(base_url));
 
     let server = HttpServer::new(move || {
         App::new()
@@ -89,3 +89,5 @@ pub fn run(
 
     Ok(server)
 }
+
+pub struct ApplicationBaseUrl(pub String);
