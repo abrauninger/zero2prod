@@ -1,4 +1,4 @@
-use actix_web::{HttpResponse, http::header::LOCATION, web};
+use actix_web::{HttpResponse, error::InternalError, http::header::LOCATION, web};
 use hmac::{Hmac, Mac};
 use secrecy::{ExposeSecret, Secret};
 use sqlx::PgPool;
@@ -19,7 +19,7 @@ pub async fn login(
     form: web::Form<FormData>,
     pool: web::Data<PgPool>,
     secret: web::Data<Secret<String>>,
-) -> HttpResponse {
+) -> Result<HttpResponse, InternalError<LoginError>> {
     let credentials = Credentials {
         username: form.0.username,
         password: form.0.password,
@@ -30,9 +30,9 @@ pub async fn login(
     match validate_credentials(credentials, &pool).await {
         Ok(user_id) => {
             tracing::Span::current().record("user_id", tracing::field::display(&user_id));
-            HttpResponse::SeeOther()
+            Ok(HttpResponse::SeeOther()
                 .insert_header((LOCATION, "/"))
-                .finish()
+                .finish())
         }
         Err(e) => {
             let e = match e {
@@ -50,9 +50,11 @@ pub async fn login(
                 mac.finalize().into_bytes()
             };
 
-            HttpResponse::SeeOther()
+            let response = HttpResponse::SeeOther()
                 .insert_header((LOCATION, format!("/login?{query_string}&tag={hmac_tag:x}")))
-                .finish()
+                .finish();
+
+            Err(InternalError::from_response(e, response))
         }
     }
 }
