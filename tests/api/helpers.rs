@@ -120,6 +120,15 @@ impl TestApp {
         let plain_text = get_link(body["TextBody"].as_str().unwrap());
         ConfirmationLinks { html, plain_text }
     }
+
+    pub async fn post_login<Body: serde::Serialize>(&self, body: &Body) -> reqwest::Response {
+        reqwest::Client::new()
+            .post(format!("{}/login", &self.address))
+            .form(body)
+            .send()
+            .await
+            .expect("Failed to execute request")
+    }
 }
 
 pub struct ConfirmationLinks {
