@@ -1,6 +1,9 @@
 use actix_web::{
     HttpRequest, HttpResponse, ResponseError,
-    http::{StatusCode, header::HeaderMap},
+    http::{
+        StatusCode,
+        header::{self, HeaderMap, HeaderValue},
+    },
     web,
 };
 use anyhow::Context;
@@ -140,10 +143,19 @@ impl std::fmt::Debug for PublishError {
 }
 
 impl ResponseError for PublishError {
-    fn status_code(&self) -> StatusCode {
+    fn error_response(&self) -> HttpResponse {
         match self {
-            PublishError::AuthError(_) => StatusCode::UNAUTHORIZED,
-            PublishError::UnexpectedError(_) => StatusCode::INTERNAL_SERVER_ERROR,
+            PublishError::UnexpectedError(_) => {
+                HttpResponse::new(StatusCode::INTERNAL_SERVER_ERROR)
+            }
+            PublishError::AuthError(_) => {
+                let mut response = HttpResponse::new(StatusCode::UNAUTHORIZED);
+                let header_value = HeaderValue::from_str(r#"Basic realm="publish""#).unwrap();
+                response
+                    .headers_mut()
+                    .insert(header::WWW_AUTHENTICATE, header_value);
+                response
+            }
         }
     }
 }
