@@ -2,7 +2,7 @@ use actix_web::{HttpResponse, ResponseError, http::StatusCode, web};
 use anyhow::Context;
 use sqlx::PgPool;
 
-use crate::{email_client::EmailClient, routes::error_chain_fmt};
+use crate::{domain::SubscriberEmail, email_client::EmailClient, routes::error_chain_fmt};
 
 #[derive(serde::Deserialize)]
 pub struct BodyData {
@@ -37,15 +37,19 @@ pub async fn publish_newsletter(
 }
 
 struct ConfirmedSubscriber {
-    email: String,
+    email: SubscriberEmail,
 }
 
 #[tracing::instrument(name = "Get confirmed subscribers", skip(pool))]
 async fn get_confirmed_subscribers(
     pool: &PgPool,
 ) -> Result<Vec<ConfirmedSubscriber>, anyhow::Error> {
+    struct Row {
+        email: String,
+    }
+
     let rows = sqlx::query_as!(
-        ConfirmedSubscriber,
+        Row,
         r#"
         SELECT email
         FROM subscriptions
@@ -55,7 +59,14 @@ async fn get_confirmed_subscribers(
     .fetch_all(pool)
     .await?;
 
-    Ok(rows)
+    let confirmed_subscribers = rows
+        .into_iter()
+        .map(|r| ConfirmedSubscriber {
+            email: SubscriberEmail::parse(r.email).unwrap(),
+        })
+        .collect();
+
+    Ok(confirmed_subscribers)
 }
 
 #[derive(thiserror::Error)]
