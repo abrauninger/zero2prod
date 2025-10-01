@@ -41,7 +41,7 @@ pub async fn spawn_app() -> TestApp {
     let _ = tokio::spawn(application.run_until_stopped());
 
     let test_app = TestApp {
-        address: format!("http://127.0.0.1:{}", application_port),
+        address: format!("http://localhost:{}", application_port),
         port: application_port,
         db_pool: get_connection_pool(&configuration.database),
         email_server,
@@ -109,7 +109,7 @@ impl TestApp {
             let mut confirmation_link = Url::parse(&raw_link).unwrap();
 
             // Make sure we don't call random APIs on the web
-            assert_eq!(confirmation_link.host_str().unwrap(), "127.0.0.1");
+            assert_eq!(confirmation_link.host_str().unwrap(), "localhost");
 
             // Rewrite the URL to include the port
             confirmation_link.set_port(Some(self.port)).unwrap();
