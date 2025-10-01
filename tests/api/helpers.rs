@@ -122,7 +122,10 @@ impl TestApp {
     }
 
     pub async fn post_login<Body: serde::Serialize>(&self, body: &Body) -> reqwest::Response {
-        reqwest::Client::new()
+        reqwest::Client::builder()
+            .redirect(reqwest::redirect::Policy::none())
+            .build()
+            .unwrap()
             .post(format!("{}/login", &self.address))
             .form(body)
             .send()
