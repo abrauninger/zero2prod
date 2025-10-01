@@ -6,6 +6,7 @@ use sqlx::PgPool;
 use crate::{
     authentication::{AuthError, Credentials, validate_credentials},
     routes::error_chain_fmt,
+    startup::HmacSecret,
 };
 
 #[derive(serde::Deserialize)]
@@ -18,7 +19,7 @@ pub struct FormData {
 pub async fn login(
     form: web::Form<FormData>,
     pool: web::Data<PgPool>,
-    secret: web::Data<Secret<String>>,
+    secret: web::Data<HmacSecret>,
 ) -> Result<HttpResponse, InternalError<LoginError>> {
     let credentials = Credentials {
         username: form.0.username,
@@ -44,7 +45,7 @@ pub async fn login(
 
             let hmac_tag = {
                 let mut mac =
-                    Hmac::<sha2::Sha256>::new_from_slice(secret.expose_secret().as_bytes())
+                    Hmac::<sha2::Sha256>::new_from_slice(secret.0.expose_secret().as_bytes())
                         .unwrap();
                 mac.update(query_string.as_bytes());
                 mac.finalize().into_bytes()
