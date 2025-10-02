@@ -3,6 +3,7 @@ use crate::email_client::EmailClient;
 use crate::routes::{
     confirm, health_check, home, login, login_form, publish_newsletter, subscribe,
 };
+use actix_session::SessionMiddleware;
 use actix_web::cookie::Key;
 use actix_web::{
     App, HttpServer,
@@ -82,6 +83,7 @@ pub fn run(
     let email_client = Data::new(email_client);
     let base_url = Data::new(ApplicationBaseUrl(base_url));
 
+    let secret_key = Key::from(cookie_store_key.expose_secret().as_bytes());
     let message_store =
         CookieMessageStore::builder(Key::from(cookie_store_key.expose_secret().as_bytes())).build();
     let message_framework = FlashMessagesFramework::builder(message_store).build();
@@ -89,6 +91,7 @@ pub fn run(
     let server = HttpServer::new(move || {
         App::new()
             .wrap(message_framework.clone())
+            .wrap(SessionMiddleware::new(todo!(), secret_key.clone()))
             .wrap(TracingLogger::default())
             .route("/health_check", web::get().to(health_check))
             .route("/subscriptions", web::post().to(subscribe))

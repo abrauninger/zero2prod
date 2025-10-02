@@ -11,6 +11,7 @@ path = "src/main.rs"
 name = "zero2prod"
 
 [dependencies]
+actix-session = "0.10"
 actix-web = "4"
 actix-web-flash-messages = { version = "0.5", features = ["cookies"] }
 anyhow = "1"
