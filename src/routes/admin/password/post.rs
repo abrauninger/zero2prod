@@ -23,7 +23,7 @@ pub async fn change_password(
     session: TypedSession,
     pool: web::Data<PgPool>,
 ) -> Result<HttpResponse, actix_web::Error> {
-    let user_id = get_logged_in_user_id(session).await?;
+    let user_id = get_logged_in_user_id(&session).await?;
 
     if form.new_password.expose_secret() != form.new_password_check.expose_secret() {
         FlashMessage::error(
@@ -57,7 +57,7 @@ pub async fn change_password(
     Ok(see_other("/admin/password"))
 }
 
-async fn get_logged_in_user_id(session: TypedSession) -> Result<Uuid, actix_web::Error> {
+pub async fn get_logged_in_user_id(session: &TypedSession) -> Result<Uuid, actix_web::Error> {
     match session.get_user_id().map_err(e500)? {
         Some(user_id) => Ok(user_id),
         None => {
