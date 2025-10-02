@@ -96,10 +96,14 @@ async fn run(
     let server = HttpServer::new(move || {
         App::new()
             .wrap(message_framework.clone())
-            .wrap(SessionMiddleware::new(
-                redis_store.clone(),
-                secret_key.clone(),
-            ))
+            // TODO: HACK FOR LOCAL TESTING ONLY: Disable secure cookies
+            // THIS IS A HACK AND NEEDS TO BE FIXED IN PRODUCTION
+            // Technique borrowed from https://github.com/LukeMathWalker/zero-to-production/issues/234
+            .wrap(
+                SessionMiddleware::builder(redis_store.clone(), secret_key.clone())
+                    .cookie_secure(false)
+                    .build(),
+            )
             .wrap(TracingLogger::default())
             .route("/health_check", web::get().to(health_check))
             .route("/subscriptions", web::post().to(subscribe))
