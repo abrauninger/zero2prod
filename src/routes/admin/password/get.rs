@@ -3,14 +3,9 @@ use actix_web_flash_messages::IncomingFlashMessages;
 
 use std::fmt::Write;
 
-use crate::{routes::get_logged_in_user_id, session_state::TypedSession};
-
 pub async fn change_password_form(
-    session: TypedSession,
     flash_messages: IncomingFlashMessages,
 ) -> Result<HttpResponse, actix_web::Error> {
-    get_logged_in_user_id(&session).await?;
-
     let mut msg_html = String::new();
     for m in flash_messages.iter() {
         writeln!(msg_html, "<p><i>{}</i></p>", m.content()).unwrap();

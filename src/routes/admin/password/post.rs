@@ -1,13 +1,11 @@
-use actix_web::{HttpResponse, error::InternalError, web};
+use actix_web::{HttpResponse, web};
 use actix_web_flash_messages::FlashMessage;
 use secrecy::{ExposeSecret, Secret};
 use sqlx::PgPool;
-use uuid::Uuid;
 
 use crate::{
     authentication::{AuthError, Credentials, UserId, validate_credentials},
     routes::admin::dashboard::get_username,
-    session_state::TypedSession,
     utils::{e500, see_other},
 };
 
@@ -55,15 +53,4 @@ pub async fn change_password(
         .map_err(e500)?;
     FlashMessage::info("Your password has been changed.").send();
     Ok(see_other("/admin/password"))
-}
-
-pub async fn get_logged_in_user_id(session: &TypedSession) -> Result<Uuid, actix_web::Error> {
-    match session.get_user_id().map_err(e500)? {
-        Some(user_id) => Ok(user_id),
-        None => {
-            let response = see_other("/login");
-            let e = anyhow::anyhow!("The user has not logged in");
-            Err(InternalError::from_response(e, response).into())
-        }
-    }
 }
