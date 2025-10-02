@@ -55,6 +55,7 @@ impl Application {
             configuration.application.base_url,
             configuration.application.cookie_store_key,
             configuration.redis_uri,
+            configuration.application.secure_cookies,
         )
         .await?;
 
@@ -81,6 +82,7 @@ async fn run(
     base_url: String,
     cookie_store_key: Secret<String>,
     redis_uri: Secret<String>,
+    secure_cookies: bool,
 ) -> Result<Server, anyhow::Error> {
     // Wrap the pool in a smart pointer
     let db_pool = Data::new(db_pool);
@@ -96,12 +98,9 @@ async fn run(
     let server = HttpServer::new(move || {
         App::new()
             .wrap(message_framework.clone())
-            // TODO: HACK FOR LOCAL TESTING ONLY: Disable secure cookies
-            // THIS IS A HACK AND NEEDS TO BE FIXED IN PRODUCTION
-            // Technique borrowed from https://github.com/LukeMathWalker/zero-to-production/issues/234
             .wrap(
                 SessionMiddleware::builder(redis_store.clone(), secret_key.clone())
-                    .cookie_secure(false)
+                    .cookie_secure(secure_cookies)
                     .build(),
             )
             .wrap(TracingLogger::default())
