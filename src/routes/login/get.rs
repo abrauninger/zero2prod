@@ -1,4 +1,4 @@
-use actix_web::{HttpRequest, HttpResponse, http::header::ContentType};
+use actix_web::{HttpRequest, HttpResponse, cookie::Cookie, http::header::ContentType};
 
 pub async fn login_form(request: HttpRequest) -> HttpResponse {
     let error_html = match request.cookie("_flash") {
@@ -8,7 +8,7 @@ pub async fn login_form(request: HttpRequest) -> HttpResponse {
         }
     };
 
-    HttpResponse::Ok()
+    let mut response = HttpResponse::Ok()
         .content_type(ContentType::html())
         .body(format!(
             r#"<!doctype html>
@@ -43,5 +43,12 @@ pub async fn login_form(request: HttpRequest) -> HttpResponse {
     </body>
 </html>
 "#
-        ))
+        ));
+
+    // Remove a flash message (if any)
+    response
+        .add_removal_cookie(&Cookie::new("_flash", ""))
+        .unwrap();
+
+    response
 }
