@@ -1,8 +1,8 @@
 use crate::configuration::{DatabaseSettings, Settings};
 use crate::email_client::EmailClient;
 use crate::routes::{
-    admin_dashboard, change_password, change_password_form, confirm, health_check, home, login,
-    login_form, publish_newsletter, subscribe,
+    admin_dashboard, change_password, change_password_form, confirm, health_check, home, log_out,
+    login, login_form, publish_newsletter, subscribe,
 };
 use actix_session::SessionMiddleware;
 use actix_session::storage::RedisSessionStore;
@@ -111,6 +111,7 @@ async fn run(
             .route("/newsletters", web::post().to(publish_newsletter))
             .route("/login", web::get().to(login_form))
             .route("/login", web::post().to(login))
+            .route("/logout", web::post().to(log_out))
             .route("/admin/dashboard", web::get().to(admin_dashboard))
             .route("/admin/password", web::get().to(change_password_form))
             .route("/admin/password", web::post().to(change_password))
