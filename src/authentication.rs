@@ -1,7 +1,8 @@
 use anyhow::Context;
-use argon2::{Argon2, PasswordHash, PasswordVerifier};
+use argon2::{Argon2, PasswordHash, PasswordHasher, PasswordVerifier, password_hash::SaltString};
 use secrecy::{ExposeSecret, Secret};
 use sqlx::PgPool;
+use tokio::task::JoinHandle;
 
 pub struct Credentials {
     pub username: String,
@@ -37,9 +38,8 @@ pub async fn validate_credentials(
         expected_password_hash = stored_password_hash;
     }
 
-    let current_span = tracing::Span::current();
-    tokio::task::spawn_blocking(move || {
-        current_span.in_scope(|| verify_password_hash(expected_password_hash, credentials.password))
+    spawn_blocking_with_tracing(move || {
+        verify_password_hash(expected_password_hash, credentials.password)
     })
     .await
     .context("Failed to spawn blocking task")??;
@@ -68,6 +68,32 @@ async fn get_stored_credentials(
     Ok(row)
 }
 
+#[tracing::instrument(name = "Change password", skip(password, pool))]
+pub async fn change_password(
+    user_id: uuid::Uuid,
+    password: Secret<String>,
+    pool: &PgPool,
+) -> Result<(), anyhow::Error> {
+    let password_hash = spawn_blocking_with_tracing(move || compute_password_hash(password))
+        .await?
+        .context("Failed to hash password")?;
+
+    sqlx::query!(
+        r#"
+        UPDATE users
+        SET password_hash = $1
+        WHERE user_id = $2
+        "#,
+        password_hash.expose_secret(),
+        user_id
+    )
+    .execute(pool)
+    .await
+    .context("Failed to change user's password in the database")?;
+
+    Ok(())
+}
+
 #[tracing::instrument(
     name = "Verify password hash",
     skip(expected_password_hash, password_candidate)
@@ -86,4 +112,22 @@ fn verify_password_hash(
         )
         .context("Invalid password")
         .map_err(AuthError::InvalidCredentials)
+}
+
+#[tracing::instrument(name = "Compute password hash")]
+fn compute_password_hash(password: Secret<String>) -> Result<Secret<String>, anyhow::Error> {
+    let salt = SaltString::generate(&mut rand::thread_rng());
+    let password_hash = Argon2::default()
+        .hash_password(password.expose_secret().as_bytes(), &salt)?
+        .to_string();
+    Ok(Secret::new(password_hash))
+}
+
+fn spawn_blocking_with_tracing<F, R>(f: F) -> JoinHandle<R>
+where
+    F: FnOnce() -> R + Send + 'static,
+    R: Send + 'static,
+{
+    let current_span = tracing::Span::current();
+    tokio::task::spawn_blocking(move || current_span.in_scope(f))
 }
