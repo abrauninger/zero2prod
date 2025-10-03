@@ -48,6 +48,11 @@ pub async fn change_password(
         };
     }
 
+    if form.0.new_password.expose_secret().len() < 12 {
+        FlashMessage::error("The new password you entered is too short. The new password must be at least 12 characters long.").send();
+        return Ok(see_other("/admin/password"));
+    }
+
     crate::authentication::change_password(*user_id, form.0.new_password, &pool)
         .await
         .map_err(e500)?;
