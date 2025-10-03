@@ -11,9 +11,10 @@ use anyhow::Context;
 use sqlx::PgPool;
 
 use crate::{
+    authentication::UserId,
     domain::SubscriberEmail,
     email_client::EmailClient,
-    idempotency::IdempotencyKey,
+    idempotency::{IdempotencyKey, get_saved_response},
     utils::{e400, e500, error_chain_fmt, see_other},
 };
 
@@ -25,11 +26,12 @@ pub struct PublishNewsletterFormData {
     idempotency_key: String,
 }
 
-#[tracing::instrument(name = "Publish newsletter", skip(form, pool, email_client))]
+#[tracing::instrument(name = "Publish newsletter", skip(form, pool, email_client, user_id))]
 pub async fn publish_newsletter(
     form: web::Form<PublishNewsletterFormData>,
     pool: web::Data<PgPool>,
     email_client: web::Data<EmailClient>,
+    user_id: web::ReqData<UserId>,
 ) -> Result<HttpResponse, actix_web::Error> {
     let PublishNewsletterFormData {
         title,
@@ -38,6 +40,15 @@ pub async fn publish_newsletter(
         idempotency_key,
     } = form.0;
     let idempotency_key: IdempotencyKey = idempotency_key.try_into().map_err(e400)?;
+
+    // Return early if we have a saved response in the database
+    if let Some(saved_response) = get_saved_response(&pool, &idempotency_key, user_id.into_inner())
+        .await
+        .map_err(e500)?
+    {
+        FlashMessage::info("Your newsletter has been published.").send();
+        return Ok(saved_response);
+    }
 
     let subscribers = get_confirmed_subscribers(&pool).await.map_err(e500)?;
     tracing::info!(subscriber_count = subscribers.len());
