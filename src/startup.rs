@@ -50,7 +50,7 @@ impl Application {
             configuration.application.host, configuration.application.port
         );
 
-        tracing::info!("Binding TCP listener to address {address:?}");
+        tracing::info!(address, "Binding TCP listener");
 
         let listener = TcpListener::bind(&address).unwrap_or_else(|e| {
             panic!("Failed to bind TCP listener to address {address:?}: {e:?}")
