@@ -6,6 +6,7 @@ use actix_web::{
     },
     web,
 };
+use actix_web_flash_messages::FlashMessage;
 use anyhow::Context;
 use sqlx::PgPool;
 
@@ -14,7 +15,7 @@ use crate::{
     domain::SubscriberEmail,
     email_client::EmailClient,
     routes::{admin::dashboard::get_username, error_chain_fmt},
-    utils::e500,
+    utils::{e500, see_other},
 };
 
 #[derive(serde::Deserialize)]
@@ -66,7 +67,9 @@ pub async fn publish_newsletter(
             }
         }
     }
-    Ok(HttpResponse::Ok().finish())
+
+    FlashMessage::info("Your newsletter has been published.").send();
+    Ok(see_other("/admin/newsletters"))
 }
 
 struct ConfirmedSubscriber {

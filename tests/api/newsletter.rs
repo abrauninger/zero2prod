@@ -44,7 +44,7 @@ async fn newsletters_are_not_delivered_to_unconfirmed_subscribers() {
     let response = app.post_newsletters(newsletter_request_body).await;
 
     // Assert
-    assert_eq!(response.status().as_u16(), 200);
+    assert_is_redirect_to(&response, "/admin/newsletters");
 
     // Mock verifies on Drop that we haven't sent the newsletter email
 }
@@ -75,7 +75,7 @@ async fn newsletters_are_delivered_to_confirmed_subscribers() {
     let response = app.post_newsletters(newsletter_request_body).await;
 
     // Assert
-    assert_eq!(response.status().as_u16(), 200);
+    assert_is_redirect_to(&response, "/admin/newsletters");
 
     // Mock verifies on Drop that we have sent the newsletter email
 }
