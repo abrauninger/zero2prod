@@ -103,7 +103,9 @@ async fn run(
 
     let secret_key = Key::from(cookie_store_key.expose_secret().as_bytes());
     let message_store =
-        CookieMessageStore::builder(Key::from(cookie_store_key.expose_secret().as_bytes())).build();
+        CookieMessageStore::builder(Key::from(cookie_store_key.expose_secret().as_bytes()))
+            .secure(secure_cookies)
+            .build();
     let message_framework = FlashMessagesFramework::builder(message_store).build();
 
     let redis_store = RedisSessionStore::new(redis_uri.expose_secret()).await?;
