@@ -1,5 +1,5 @@
 application:
-  port: 80
+  port: 8000
   secure_cookies: true
 database:
   host: "localhost"
