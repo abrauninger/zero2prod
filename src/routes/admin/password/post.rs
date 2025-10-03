@@ -10,14 +10,14 @@ use crate::{
 };
 
 #[derive(serde::Deserialize)]
-pub struct FormData {
+pub struct ChangePasswordFormData {
     current_password: Secret<String>,
     new_password: Secret<String>,
     new_password_check: Secret<String>,
 }
 
 pub async fn change_password(
-    form: web::Form<FormData>,
+    form: web::Form<ChangePasswordFormData>,
     pool: web::Data<PgPool>,
     user_id: web::ReqData<UserId>,
 ) -> Result<HttpResponse, actix_web::Error> {

@@ -35,13 +35,11 @@ async fn newsletters_are_not_delivered_to_unconfirmed_subscribers() {
     // Act
     let newsletter_request_body = serde_json::json!({
         "title": "Newsletter title",
-        "content": {
-            "text": "Newsletter body as plain text",
-            "html": "<p>Newsletter boddy as HTML</p>",
-        }
+        "content_text": "Newsletter body as plain text",
+        "content_html": "<p>Newsletter boddy as HTML</p>",
     });
 
-    let response = app.post_newsletters(newsletter_request_body).await;
+    let response = app.post_newsletters(&newsletter_request_body).await;
 
     // Assert
     assert_is_redirect_to(&response, "/admin/newsletters");
@@ -66,13 +64,11 @@ async fn newsletters_are_delivered_to_confirmed_subscribers() {
     // Act
     let newsletter_request_body = serde_json::json!({
         "title": "Newsletter title",
-        "content": {
-            "text": "Newsletter body as plain text",
-            "html": "<p>Newsletter boddy as HTML</p>",
-        }
+        "content_text": "Newsletter body as plain text",
+        "content_html": "<p>Newsletter boddy as HTML</p>",
     });
 
-    let response = app.post_newsletters(newsletter_request_body).await;
+    let response = app.post_newsletters(&newsletter_request_body).await;
 
     // Assert
     assert_is_redirect_to(&response, "/admin/newsletters");
@@ -87,8 +83,8 @@ async fn newsletters_returns_400_for_invalid_data() {
     let test_cases = vec![
         (
             serde_json::json!({
-                "text": "Newsletter body as plain text",
-                "html": "<p>Newsletter body as HTML</p>",
+                "content_text": "Newsletter body as plain text",
+                "content_html": "<p>Newsletter body as HTML</p>",
             }),
             "missing title",
         ),
@@ -102,7 +98,7 @@ async fn newsletters_returns_400_for_invalid_data() {
 
     // Act
     for (invalid_body, error_message) in test_cases {
-        let response = app.post_newsletters(invalid_body).await;
+        let response = app.post_newsletters(&invalid_body).await;
 
         // Assert
         assert_eq!(
@@ -128,13 +124,11 @@ async fn publish_newsletter_form_works() {
     // Act - Part 2 - Publish the newsletter
     let newsletter_request_body = serde_json::json!({
         "title": "Newsletter title",
-        "content": {
-            "text": "Newsletter body as plain text",
-            "html": "<p>Newsletter boddy as HTML</p>",
-        }
+        "content_text": "Newsletter body as plain text",
+        "content_html": "<p>Newsletter body as HTML</p>",
     });
 
-    let response = app.post_newsletters(newsletter_request_body).await;
+    let response = app.post_newsletters(&newsletter_request_body).await;
     assert_is_redirect_to(&response, "/admin/newsletters");
 
     // Assert

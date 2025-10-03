@@ -11,6 +11,12 @@ use crate::domain::{NewSubscriber, SubscriberEmail, SubscriberName};
 use crate::email_client::EmailClient;
 use crate::startup::ApplicationBaseUrl;
 
+#[derive(serde::Deserialize)]
+pub struct SubscribeFormData {
+    email: String,
+    name: String,
+}
+
 #[tracing::instrument(
     name = "Adding a new subscriber.",
     skip(form, pool, email_client, base_url),
@@ -20,7 +26,7 @@ use crate::startup::ApplicationBaseUrl;
     )
 )]
 pub async fn subscribe(
-    form: web::Form<FormData>,
+    form: web::Form<SubscribeFormData>,
     pool: web::Data<PgPool>,
     email_client: web::Data<EmailClient>,
     base_url: web::Data<ApplicationBaseUrl>,
@@ -58,10 +64,10 @@ pub async fn subscribe(
     Ok(HttpResponse::Ok().finish())
 }
 
-impl TryFrom<FormData> for NewSubscriber {
+impl TryFrom<SubscribeFormData> for NewSubscriber {
     type Error = String;
 
-    fn try_from(value: FormData) -> Result<NewSubscriber, Self::Error> {
+    fn try_from(value: SubscribeFormData) -> Result<NewSubscriber, Self::Error> {
         let name = SubscriberName::parse(value.name)?;
         let email = SubscriberEmail::parse(value.email)?;
         Ok(Self { email, name })
@@ -140,12 +146,6 @@ async fn insert_subscriber(
     transaction.execute(query).await?;
 
     Ok(subscriber_id)
-}
-
-#[derive(serde::Deserialize)]
-pub struct FormData {
-    email: String,
-    name: String,
 }
 
 /// Generate a random 25-character-long case-sensitive subscription token

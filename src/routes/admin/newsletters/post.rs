@@ -19,19 +19,14 @@ use crate::{
 };
 
 #[derive(serde::Deserialize)]
-pub struct BodyData {
+pub struct FormData {
     title: String,
-    content: Content,
-}
-
-#[derive(serde::Deserialize)]
-pub struct Content {
-    html: String,
-    text: String,
+    content_text: String,
+    content_html: String,
 }
 
 pub async fn publish_newsletter(
-    body: web::Json<BodyData>,
+    form: web::Form<FormData>,
     pool: web::Data<PgPool>,
     user_id: web::ReqData<UserId>,
     email_client: web::Data<EmailClient>,
@@ -49,9 +44,9 @@ pub async fn publish_newsletter(
                 email_client
                     .send_email(
                         &subscriber.email,
-                        &body.title,
-                        &body.content.html,
-                        &body.content.text,
+                        &form.title,
+                        &form.content_html,
+                        &form.content_text,
                     )
                     .await
                     .with_context(|| {
