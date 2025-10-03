@@ -4,7 +4,7 @@ use sqlx::postgres::{PgConnectOptions, PgSslMode};
 
 use crate::domain::SubscriberEmail;
 
-pub fn get_configuration() -> Result<Settings, config::ConfigError> {
+pub fn get_configuration() -> Settings {
     let base_path = std::env::current_dir().expect("Failed to determine the current directory");
     let configuration_directory = base_path.join("configuration");
 
@@ -31,9 +31,12 @@ pub fn get_configuration() -> Result<Settings, config::ConfigError> {
                 .prefix_separator("_")
                 .separator("__"),
         )
-        .build()?;
+        .build()
+        .expect("Failed to build configuration");
 
-    settings.try_deserialize()
+    settings
+        .try_deserialize()
+        .expect("Failed to deserialize configuration")
 }
 
 /// The possible runtime environment for our application.

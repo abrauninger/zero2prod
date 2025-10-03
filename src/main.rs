@@ -23,7 +23,7 @@ async fn main() {
         );
     };
 
-    let configuration = get_configuration().expect("Failed to read configuration");
+    let configuration = get_configuration();
 
     let application = Application::build(configuration).await;
 
