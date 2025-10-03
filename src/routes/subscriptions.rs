@@ -10,6 +10,7 @@ use uuid::Uuid;
 use crate::domain::{NewSubscriber, SubscriberEmail, SubscriberName};
 use crate::email_client::EmailClient;
 use crate::startup::ApplicationBaseUrl;
+use crate::utils::error_chain_fmt;
 
 #[derive(serde::Deserialize)]
 pub struct SubscribeFormData {
@@ -202,18 +203,4 @@ impl std::error::Error for StoreTokenError {
     fn source(&self) -> Option<&(dyn std::error::Error + 'static)> {
         Some(&self.0)
     }
-}
-
-// TODO: Move to a better shared location?
-pub fn error_chain_fmt(
-    e: &impl std::error::Error,
-    f: &mut std::fmt::Formatter<'_>,
-) -> std::fmt::Result {
-    writeln!(f, "{e}\n")?;
-    let mut current = e.source();
-    while let Some(cause) = current {
-        writeln!(f, "Caused by:\n\t{cause}")?;
-        current = cause.source();
-    }
-    Ok(())
 }

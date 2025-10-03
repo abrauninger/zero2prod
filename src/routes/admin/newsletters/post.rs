@@ -14,19 +14,19 @@ use crate::{
     authentication::UserId,
     domain::SubscriberEmail,
     email_client::EmailClient,
-    routes::{admin::dashboard::get_username, error_chain_fmt},
-    utils::{e500, see_other},
+    routes::admin::dashboard::get_username,
+    utils::{e500, error_chain_fmt, see_other},
 };
 
 #[derive(serde::Deserialize)]
-pub struct FormData {
+pub struct PublishNewsletterFormData {
     title: String,
     content_text: String,
     content_html: String,
 }
 
 pub async fn publish_newsletter(
-    form: web::Form<FormData>,
+    form: web::Form<PublishNewsletterFormData>,
     pool: web::Data<PgPool>,
     user_id: web::ReqData<UserId>,
     email_client: web::Data<EmailClient>,
