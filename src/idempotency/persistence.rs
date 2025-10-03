@@ -58,7 +58,24 @@ pub async fn save_response(
         h
     };
 
-    // TODO: SQL query
+    sqlx::query!(
+        r#"
+        INSERT INTO idempotency (
+            user_id,
+            idempotency_key,
+            response_status_code,
+            response_headers,
+            response_body,
+            created_at
+        )
+        VALUES ($1, $2, $3, $4, $5, now())
+        "#,
+        *user_id,
+        idempotency_key.as_ref(),
+        status_code,
+        headers,
+        body.as_ref(),
+    );
 
     let http_response = response_head.set_body(body).map_into_boxed_body();
     Ok(http_response)
