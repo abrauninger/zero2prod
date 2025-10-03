@@ -11,11 +11,10 @@ use anyhow::Context;
 use sqlx::PgPool;
 
 use crate::{
-    authentication::UserId,
     domain::SubscriberEmail,
     email_client::EmailClient,
-    routes::admin::dashboard::get_username,
-    utils::{e500, error_chain_fmt, see_other},
+    idempotency::IdempotencyKey,
+    utils::{e400, e500, error_chain_fmt, see_other},
 };
 
 #[derive(serde::Deserialize)]
@@ -23,31 +22,28 @@ pub struct PublishNewsletterFormData {
     title: String,
     content_text: String,
     content_html: String,
+    idempotency_key: String,
 }
 
 pub async fn publish_newsletter(
     form: web::Form<PublishNewsletterFormData>,
     pool: web::Data<PgPool>,
-    user_id: web::ReqData<UserId>,
     email_client: web::Data<EmailClient>,
 ) -> Result<HttpResponse, actix_web::Error> {
-    let user_id = user_id.into_inner();
-    let username = get_username(*user_id, &pool).await.map_err(e500)?;
-
-    tracing::Span::current().record("username", tracing::field::display(&username));
-    tracing::Span::current().record("user_id", tracing::field::display(&user_id));
+    let PublishNewsletterFormData {
+        title,
+        content_text,
+        content_html,
+        idempotency_key,
+    } = form.0;
+    let idempotency_key: IdempotencyKey = idempotency_key.try_into().map_err(e400)?;
 
     let subscribers = get_confirmed_subscribers(&pool).await.map_err(e500)?;
     for subscriber in subscribers {
         match subscriber {
             Ok(subscriber) => {
                 email_client
-                    .send_email(
-                        &subscriber.email,
-                        &form.title,
-                        &form.content_html,
-                        &form.content_text,
-                    )
+                    .send_email(&subscriber.email, &title, &content_html, &content_text)
                     .await
                     .with_context(|| {
                         format!("Failed to send newsletter issue to {}", subscriber.email)
