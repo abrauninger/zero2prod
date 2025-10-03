@@ -4,4 +4,14 @@ application:
   cookie_store_key: "long-and-very-secret-random-key-needed-to-verify-cookie-integrity"
   secure_cookies: false
 database:
+  host: "localhost"
+  port: 5432
+  username: "postgres"
+  password: "password"
+  database_name: "newsletter"
   require_ssl: false
+email_client:
+  base_url: "localhost"
+  sender_email: "test@gmail.com"
+  authorization_token: "my-secret-token"
+redis_uri: "redis://localhost:6379"
