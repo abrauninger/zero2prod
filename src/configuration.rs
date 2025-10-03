@@ -19,9 +19,6 @@ pub fn get_configuration() -> Settings {
 
     let settings = config::Config::builder()
         .add_source(config::File::from(
-            configuration_directory.join("base.yaml"),
-        ))
-        .add_source(config::File::from(
             configuration_directory.join(environment_filename),
         ))
         // Read settings from environment variables

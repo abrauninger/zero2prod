@@ -1,6 +1,7 @@
 application:
   host: localhost
   base_url: "http://localhost"
+  port: 8000
   cookie_store_key: "long-and-very-secret-random-key-needed-to-verify-cookie-integrity"
   secure_cookies: false
 database:
