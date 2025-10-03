@@ -1,25 +1,20 @@
-use std::process::ExitCode;
-
 use zero2prod::{configuration::get_configuration, startup::Application, telemetry};
 
 #[tokio::main]
-async fn main() -> ExitCode {
+async fn main() {
     let subscriber = telemetry::get_subscriber("zero2prod".into(), "info".into(), std::io::stdout);
     telemetry::init_subscriber(subscriber);
 
     tracing::info!("Starting process");
 
-    if let Err(e) = execute().await {
-        tracing::error!("Error during 'execute': {e:?}");
-        ExitCode::FAILURE
-    } else {
-        ExitCode::SUCCESS
-    }
-}
+    let configuration = get_configuration().expect("Failed to read configuration");
 
-async fn execute() -> Result<(), anyhow::Error> {
-    let configuration = get_configuration().expect("Failed to read configuration.");
-    let application = Application::build(configuration).await?;
-    application.run_until_stopped().await?;
-    Ok(())
+    let application = Application::build(configuration)
+        .await
+        .expect("Failed to build 'Application' object");
+
+    application
+        .run_until_stopped()
+        .await
+        .expect("Failed to run appllication");
 }
