@@ -85,6 +85,10 @@ pub fn get_connection_pool(configuration: &DatabaseSettings) -> PgPool {
     PgPoolOptions::new().connect_lazy_with(configuration.connect_options())
 }
 
+#[tracing::instrument(
+    name = "Run server",
+    skip(listener, db_pool, email_client, cookie_store_key, redis_uri)
+)]
 async fn run(
     listener: TcpListener,
     db_pool: PgPool,
