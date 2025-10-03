@@ -1,3 +1,4 @@
+use uuid::Uuid;
 use wiremock::{
     Mock, ResponseTemplate,
     matchers::{any, method, path},
@@ -37,6 +38,7 @@ async fn newsletters_are_not_delivered_to_unconfirmed_subscribers() {
         "title": "Newsletter title",
         "content_text": "Newsletter body as plain text",
         "content_html": "<p>Newsletter boddy as HTML</p>",
+        "idempotency_key": Uuid::new_v4().to_string(),
     });
 
     let response = app.post_newsletters(&newsletter_request_body).await;
@@ -66,6 +68,7 @@ async fn newsletters_are_delivered_to_confirmed_subscribers() {
         "title": "Newsletter title",
         "content_text": "Newsletter body as plain text",
         "content_html": "<p>Newsletter boddy as HTML</p>",
+        "idempotency_key": Uuid::new_v4().to_string(),
     });
 
     let response = app.post_newsletters(&newsletter_request_body).await;
@@ -85,6 +88,7 @@ async fn newsletters_returns_400_for_invalid_data() {
             serde_json::json!({
                 "content_text": "Newsletter body as plain text",
                 "content_html": "<p>Newsletter body as HTML</p>",
+                "idempotency_key": Uuid::new_v4().to_string(),
             }),
             "missing title",
         ),
@@ -126,6 +130,7 @@ async fn publish_newsletter_form_works() {
         "title": "Newsletter title",
         "content_text": "Newsletter body as plain text",
         "content_html": "<p>Newsletter body as HTML</p>",
+        "idempotency_key": Uuid::new_v4().to_string(),
     });
 
     let response = app.post_newsletters(&newsletter_request_body).await;
