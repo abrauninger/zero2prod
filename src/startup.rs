@@ -36,13 +36,11 @@ impl Application {
             .sender()
             .expect("Invalid sender email address.");
 
-        let timeout = configuration.email_client.timeout();
-
         let email_client = EmailClient::new(
             configuration.email_client.base_url,
             sender_email,
             configuration.email_client.authorization_token,
-            timeout,
+            /*timeout: */ std::time::Duration::from_secs(10),
         );
 
         let address = format!(
