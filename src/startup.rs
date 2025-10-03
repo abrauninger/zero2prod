@@ -50,7 +50,11 @@ impl Application {
             configuration.application.host, configuration.application.port
         );
 
-        let listener = Self::bind_tcp_listener(address).expect("Failed to bind TCP listener");
+        tracing::info!("Binding TCP listener to address {address:?}");
+
+        let listener = TcpListener::bind(&address).unwrap_or_else(|e| {
+            panic!("Failed to bind TCP listener to address {address:?}: {e:?}")
+        });
 
         let port = listener.local_addr().unwrap().port();
         let server = run(
@@ -66,13 +70,6 @@ impl Application {
         .expect("Failed to run server");
 
         Self { port, server }
-    }
-
-    #[tracing::instrument(name = "Bind TcpListener to address", fields(success))]
-    fn bind_tcp_listener(address: String) -> Result<TcpListener, std::io::Error> {
-        let listener = TcpListener::bind(address)?;
-        tracing::Span::current().record("success", true);
-        Ok(listener)
     }
 
     pub fn port(&self) -> u16 {
