@@ -114,6 +114,34 @@ async fn newsletters_returns_400_for_invalid_data() {
     }
 }
 
+#[tokio::test]
+async fn publish_newsletter_form_works() {
+    // Arrange
+    let app = spawn_app().await;
+
+    app.login().await;
+
+    // Act - Part 1 - Get the form
+    let html_page = app.get_newsletters_html().await;
+    assert!(!html_page.contains("Your newsletter has been published"));
+
+    // Act - Part 2 - Publish the newsletter
+    let newsletter_request_body = serde_json::json!({
+        "title": "Newsletter title",
+        "content": {
+            "text": "Newsletter body as plain text",
+            "html": "<p>Newsletter boddy as HTML</p>",
+        }
+    });
+
+    let response = app.post_newsletters(newsletter_request_body).await;
+    assert_is_redirect_to(&response, "/admin/newsletters");
+
+    // Assert
+    let html_page = app.get_newsletters_html().await;
+    assert!(html_page.contains("Your newsletter has been published"));
+}
+
 async fn create_unconfirmed_subscriber(app: &TestApp) -> ConfirmationLinks {
     let body = "name=le%20guin&email=ursula_le_guin%40gmail.com";
 
