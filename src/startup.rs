@@ -28,7 +28,7 @@ pub struct Application {
 }
 
 impl Application {
-    pub async fn build(configuration: Settings) -> Result<Self, anyhow::Error> {
+    pub async fn build(configuration: Settings) -> Self {
         let connection_pool = get_connection_pool(&configuration.database);
 
         let sender_email = configuration
@@ -50,7 +50,7 @@ impl Application {
             configuration.application.host, configuration.application.port
         );
 
-        let listener = Self::bind_tcp_listener(address)?;
+        let listener = Self::bind_tcp_listener(address).expect("Failed to bind TCP listener");
 
         let port = listener.local_addr().unwrap().port();
         let server = run(
@@ -62,9 +62,10 @@ impl Application {
             configuration.redis_uri,
             configuration.application.secure_cookies,
         )
-        .await?;
+        .await
+        .expect("Failed to run server");
 
-        Ok(Self { port, server })
+        Self { port, server }
     }
 
     #[tracing::instrument(name = "Bind TcpListener to address", fields(success))]
