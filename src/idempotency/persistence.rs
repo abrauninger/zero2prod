@@ -58,7 +58,8 @@ pub async fn save_response(
         h
     };
 
-    sqlx::query!(
+    // Use 'query_unchecked' because 'query' would fail due to the custom header_pair type.
+    sqlx::query_unchecked!(
         r#"
         INSERT INTO idempotency (
             user_id,
@@ -75,7 +76,9 @@ pub async fn save_response(
         status_code,
         headers,
         body.as_ref(),
-    );
+    )
+    .execute(pool)
+    .await?;
 
     let http_response = response_head.set_body(body).map_into_boxed_body();
     Ok(http_response)
