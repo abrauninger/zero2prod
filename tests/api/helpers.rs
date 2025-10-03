@@ -82,6 +82,15 @@ pub struct TestApp {
 }
 
 impl TestApp {
+    pub async fn login(&self) {
+        let login_body = serde_json::json!({
+            "username": &self.test_user.username,
+            "password": &self.test_user.password,
+        });
+        let response = self.post_login(&login_body).await;
+        assert_is_redirect_to(&response, "/admin/dashboard");
+    }
+
     pub async fn post_subscriptions(&self, body: String) -> reqwest::Response {
         self.api_client
             .post(format!("{}/subscriptions", &self.address))

@@ -22,14 +22,9 @@ async fn new_password_fields_must_match() {
     let another_new_password = Uuid::new_v4().to_string();
     assert_ne!(new_password, another_new_password);
 
-    // Act - Part 1 - Login
-    app.post_login(&serde_json::json!({
-        "username": &app.test_user.username,
-        "password": &app.test_user.password,
-    }))
-    .await;
+    app.login().await;
 
-    // Act - Part 2 - Try to change password
+    // Act - Part 1 - Try to change password
     let response = app
         .post_change_password(&serde_json::json!({
             "current_password": &app.test_user.password,
@@ -39,7 +34,7 @@ async fn new_password_fields_must_match() {
         .await;
     assert_is_redirect_to(&response, "/admin/password");
 
-    // Act - Part 3 - Follow the redirect
+    // Act - Part 2 - Follow the redirect
     let html_page = app.get_change_password_html().await;
     assert!(html_page.contains("You entered two different new passwords"));
 }
@@ -52,14 +47,9 @@ async fn current_password_must_be_valid() {
     let wrong_password = Uuid::new_v4().to_string();
     assert_ne!(new_password, wrong_password);
 
-    // Act - Part 1 - Login
-    app.post_login(&serde_json::json!({
-        "username": &app.test_user.username,
-        "password": &app.test_user.password,
-    }))
-    .await;
+    app.login().await;
 
-    // Act - Part 2 - Try to change password
+    // Act - Part 1 - Try to change password
     let response = app
         .post_change_password(&serde_json::json!({
             "current_password": &wrong_password,
@@ -69,7 +59,7 @@ async fn current_password_must_be_valid() {
         .await;
     assert_is_redirect_to(&response, "/admin/password");
 
-    // Act - Part 3 - Follow the redirect
+    // Act - Part 2 - Follow the redirect
     let html_page = app.get_change_password_html().await;
     assert!(html_page.contains("The current password is incorrect"));
 }
@@ -80,16 +70,9 @@ async fn changing_password_works() {
     let app = spawn_app().await;
     let new_password = Uuid::new_v4().to_string();
 
-    // Act - Part 1 - Login
-    let response = app
-        .post_login(&serde_json::json!({
-            "username": &app.test_user.username,
-            "password": &app.test_user.password,
-        }))
-        .await;
-    assert_is_redirect_to(&response, "/admin/dashboard");
+    app.login().await;
 
-    // Act - Part 2 - Change password
+    // Act - Part 1 - Change password
     let response = app
         .post_change_password(&serde_json::json!({
             "current_password": &app.test_user.password,
@@ -99,19 +82,19 @@ async fn changing_password_works() {
         .await;
     assert_is_redirect_to(&response, "/admin/password");
 
-    // Act - Part 3 - Follow the redirect
+    // Act - Part 2 - Follow the redirect
     let html_page = app.get_change_password_html().await;
     assert!(html_page.contains("Your password has been changed"));
 
-    // Act - Part 4 - Logout
+    // Act - Part 3 - Logout
     let response = app.post_logout().await;
     assert_is_redirect_to(&response, "/login");
 
-    // Act - Part 5 - Follow the redirect
+    // Act - Part 4 - Follow the redirect
     let html_page = app.get_login_html().await;
     assert!(html_page.contains("You have successfully logged out"));
 
-    // Act - Part 6 - Log in using the new password
+    // Act - Part 5 - Log in using the new password
     let response = app
         .post_login(&serde_json::json!({
             "username": &app.test_user.username,
