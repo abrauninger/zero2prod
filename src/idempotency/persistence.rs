@@ -8,7 +8,7 @@ use super::IdempotencyKey;
 pub async fn get_saved_response(
     pool: &PgPool,
     idempotency_key: &IdempotencyKey,
-    user_id: UserId,
+    user_id: &UserId,
 ) -> Result<Option<HttpResponse>, anyhow::Error> {
     let saved_response = sqlx::query!(
         r#"
@@ -21,7 +21,7 @@ pub async fn get_saved_response(
             user_id = $1 AND
             idempotency_key = $2
         "#,
-        *user_id,
+        **user_id,
         idempotency_key.as_ref()
     )
     .fetch_optional(pool)
@@ -42,7 +42,7 @@ pub async fn get_saved_response(
 pub async fn save_response(
     pool: &PgPool,
     idempotency_key: &IdempotencyKey,
-    user_id: UserId,
+    user_id: &UserId,
     http_response: HttpResponse,
 ) -> Result<HttpResponse, anyhow::Error> {
     let (response_head, body) = http_response.into_parts();
@@ -71,7 +71,7 @@ pub async fn save_response(
         )
         VALUES ($1, $2, $3, $4, $5, now())
         "#,
-        *user_id,
+        **user_id,
         idempotency_key.as_ref(),
         status_code,
         headers,
