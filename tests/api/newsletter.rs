@@ -41,7 +41,7 @@ async fn newsletters_are_not_delivered_to_unconfirmed_subscribers() {
         "idempotency_key": Uuid::new_v4().to_string(),
     });
 
-    let response = app.post_newsletters(&newsletter_request_body).await;
+    let response = app.post_publish_newsletter(&newsletter_request_body).await;
 
     // Assert
     assert_is_redirect_to(&response, "/admin/newsletters");
@@ -71,7 +71,7 @@ async fn newsletters_are_delivered_to_confirmed_subscribers() {
         "idempotency_key": Uuid::new_v4().to_string(),
     });
 
-    let response = app.post_newsletters(&newsletter_request_body).await;
+    let response = app.post_publish_newsletter(&newsletter_request_body).await;
 
     // Assert
     assert_is_redirect_to(&response, "/admin/newsletters");
@@ -102,7 +102,7 @@ async fn newsletters_returns_400_for_invalid_data() {
 
     // Act
     for (invalid_body, error_message) in test_cases {
-        let response = app.post_newsletters(&invalid_body).await;
+        let response = app.post_publish_newsletter(&invalid_body).await;
 
         // Assert
         assert_eq!(
@@ -122,7 +122,7 @@ async fn publish_newsletter_form_works() {
     app.login().await;
 
     // Act - Part 1 - Get the form
-    let html_page = app.get_newsletters_html().await;
+    let html_page = app.get_publish_newsletter_html().await;
     assert!(!html_page.contains("Your newsletter has been published"));
 
     // Act - Part 2 - Publish the newsletter
@@ -133,12 +133,53 @@ async fn publish_newsletter_form_works() {
         "idempotency_key": Uuid::new_v4().to_string(),
     });
 
-    let response = app.post_newsletters(&newsletter_request_body).await;
+    let response = app.post_publish_newsletter(&newsletter_request_body).await;
     assert_is_redirect_to(&response, "/admin/newsletters");
 
     // Assert
-    let html_page = app.get_newsletters_html().await;
+    let html_page = app.get_publish_newsletter_html().await;
     assert!(html_page.contains("Your newsletter has been published"));
+}
+
+#[tokio::test]
+async fn newsletter_creation_is_idempotent() {
+    // Arrange
+    let app = spawn_app().await;
+    create_confirmed_subscriber(&app).await;
+
+    Mock::given(any())
+        .respond_with(ResponseTemplate::new(200))
+        .expect(1)
+        .mount(&app.email_server)
+        .await;
+
+    app.login().await;
+
+    // Act - Part 1 - Submit newsletter form
+    let newsletter_request_body = serde_json::json!({
+        "title": "Newsletter title",
+        "content_text": "Newsletter body as plain text",
+        "content_html": "<p>Newsletter body as HTML</p>",
+        "idempotency_key": Uuid::new_v4().to_string(),
+    });
+
+    let response = app.post_publish_newsletter(&newsletter_request_body).await;
+    assert_is_redirect_to(&response, "/admin/newsletters");
+
+    // Act - Part 2 - Follow the redirect
+    let html_page = app.get_publish_newsletter_html().await;
+    assert!(html_page.contains("Your newsletter has been published"));
+
+    // Act - Part 3 - Submit newsletter form *again*
+    let response = app.post_publish_newsletter(&newsletter_request_body).await;
+    assert_is_redirect_to(&response, "/admin/newsletters");
+
+    // Act - Part 4 - Follow the redirect
+    let html_page = app.get_publish_newsletter_html().await;
+    assert!(html_page.contains("Your newsletter has been published"));
+
+    // Assert
+    // Mock verifies on Drop that we have sent the newsletter email only once.
 }
 
 async fn create_unconfirmed_subscriber(app: &TestApp) -> ConfirmationLinks {

@@ -25,6 +25,7 @@ pub struct PublishNewsletterFormData {
     idempotency_key: String,
 }
 
+#[tracing::instrument(name = "Publish newsletter", skip(form, pool, email_client))]
 pub async fn publish_newsletter(
     form: web::Form<PublishNewsletterFormData>,
     pool: web::Data<PgPool>,
@@ -39,6 +40,8 @@ pub async fn publish_newsletter(
     let idempotency_key: IdempotencyKey = idempotency_key.try_into().map_err(e400)?;
 
     let subscribers = get_confirmed_subscribers(&pool).await.map_err(e500)?;
+    tracing::info!(subscriber_count = subscribers.len());
+
     for subscriber in subscribers {
         match subscriber {
             Ok(subscriber) => {
