@@ -7,6 +7,22 @@ async fn main() {
 
     tracing::info!("Starting process");
 
+    let backtrace_level = std::env::var("RUST_BACKTRACE").ok();
+    let backtrace_setting = match &backtrace_level {
+        Some(value) => format!("Running with 'RUST_BACKTRACE={value}'."),
+        None => "Running without 'RUST_BACKTRACE' set.".to_string(),
+    };
+
+    if let Some(level) = &backtrace_level
+        && level == "full"
+    {
+        tracing::info!("{backtrace_setting}");
+    } else {
+        tracing::warn!(
+            "{backtrace_setting} RUST_BACKTRACE env var should be set to 'full' to enable proper diagnostics."
+        );
+    };
+
     let configuration = get_configuration().expect("Failed to read configuration");
 
     let application = Application::build(configuration).await;
