@@ -1,5 +1,5 @@
 use actix_web::{HttpResponse, body::to_bytes, http::StatusCode};
-use sqlx::PgPool;
+use sqlx::{Executor, PgPool, Postgres, Transaction};
 
 use crate::authentication::UserId;
 
@@ -40,7 +40,7 @@ async fn get_saved_response(
 }
 
 pub async fn save_response(
-    pool: &PgPool,
+    mut transaction: Transaction<'static, Postgres>,
     idempotency_key: &IdempotencyKey,
     user_id: &UserId,
     http_response: HttpResponse,
@@ -59,8 +59,9 @@ pub async fn save_response(
     };
 
     // Use 'query_unchecked' because 'query' would fail due to the custom header_pair type.
-    sqlx::query_unchecked!(
-        r#"
+    transaction
+        .execute(sqlx::query_unchecked!(
+            r#"
         UPDATE idempotency
         SET
             response_status_code = $3,
@@ -70,14 +71,15 @@ pub async fn save_response(
             user_id = $1 AND
             idempotency_key = $2
         "#,
-        **user_id,
-        idempotency_key.as_ref(),
-        status_code,
-        headers,
-        body.as_ref(),
-    )
-    .execute(pool)
-    .await?;
+            **user_id,
+            idempotency_key.as_ref(),
+            status_code,
+            headers,
+            body.as_ref(),
+        ))
+        .await?;
+
+    transaction.commit().await?;
 
     let http_response = response_head.set_body(body).map_into_boxed_body();
     Ok(http_response)
@@ -91,7 +93,7 @@ struct HeaderPairRecord {
 }
 
 pub enum NextAction {
-    StartProcessing,
+    StartProcessing(Transaction<'static, Postgres>),
     ReturnSavedResponse(HttpResponse),
 }
 
@@ -100,7 +102,8 @@ pub async fn try_processing(
     idempotency_key: &IdempotencyKey,
     user_id: &UserId,
 ) -> Result<NextAction, anyhow::Error> {
-    let inserted_row_count = sqlx::query!(
+    let mut transaction = pool.begin().await?;
+    let query = sqlx::query!(
         r#"
         INSERT INTO idempotency (
             user_id,
@@ -112,13 +115,11 @@ pub async fn try_processing(
         "#,
         **user_id,
         idempotency_key.as_ref()
-    )
-    .execute(pool)
-    .await?
-    .rows_affected();
+    );
+    let inserted_row_count = transaction.execute(query).await?.rows_affected();
 
     if inserted_row_count > 0 {
-        Ok(NextAction::StartProcessing)
+        Ok(NextAction::StartProcessing(transaction))
     } else {
         let saved_response = get_saved_response(pool, idempotency_key, user_id)
             .await?
