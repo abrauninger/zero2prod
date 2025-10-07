@@ -16,6 +16,10 @@
     <div>
       <button type="submit">Subscribe</button>
     </div>
+
+    <div v-if="errorMessage" class="error-message">
+      {{ errorMessage }}
+    </div>
   </form>
 </template>
 

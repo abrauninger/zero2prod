@@ -10,7 +10,7 @@ use uuid::Uuid;
 use crate::domain::{NewSubscriber, SubscriberEmail, SubscriberName};
 use crate::email_client::EmailClient;
 use crate::startup::ApplicationBaseUrl;
-use crate::utils::{e500, error_chain_fmt, see_other};
+use crate::utils::{e400, e500, error_chain_fmt, see_other};
 
 #[derive(serde::Deserialize)]
 pub struct SubscribeFormData {
@@ -27,25 +27,31 @@ pub struct SubscribeFormData {
     )
 )]
 pub async fn subscribe(
-    form: web::Form<SubscribeFormData>,
+    form: web::Json<SubscribeFormData>,
     pool: web::Data<PgPool>,
     email_client: web::Data<EmailClient>,
     base_url: web::Data<ApplicationBaseUrl>,
 ) -> Result<HttpResponse, actix_web::Error> {
-    let new_subscriber = match form.0.try_into() {
-        Ok(subscriber) => subscriber,
-        Err(_) => {
-            // TODO: Better error with specific issue in form
-            FlashMessage::error("Error in processing your subscription request").send();
-            return Ok(see_other("/"));
-        }
-    };
+    // let new_subscriber = match form.0.try_into() {
+    //     Ok(subscriber) => subscriber,
+    //     Err(_) => {
+    //         // TODO: Better error with specific issue in form
+    //         FlashMessage::error("Error in processing your subscription request").send();
+    //         return Ok(see_other("/"));
+    //     }
+    // };
+    let new_subscriber = form.0.try_into().map_err(e500)?;
 
     let mut transaction = pool.begin().await.map_err(e500)?;
 
-    let subscriber_id = insert_subscriber(&mut transaction, &new_subscriber)
-        .await
-        .map_err(e500)?;
+    let subscriber_id = match insert_subscriber(&mut transaction, &new_subscriber).await {
+        Ok(subscriber_id) => subscriber_id,
+        Err(_) => {
+            return Ok(HttpResponse::BadRequest().json(serde_json::json!({
+                "message": "So unfortunate"
+            })));
+        }
+    };
 
     let subscription_token = generate_subscription_token();
     store_token(&mut transaction, subscriber_id, &subscription_token)
@@ -63,9 +69,10 @@ pub async fn subscribe(
 
     transaction.commit().await.map_err(e500)?;
 
-    FlashMessage::info("Thank you for subscribing to our newsletter. \
-        To confirm your subscription and start receiving newsletters, check your email and click the link we've sent you.".to_string()).send();
-    Ok(see_other("/"))
+    // FlashMessage::info("Thank you for subscribing to our newsletter. \
+    //     To confirm your subscription and start receiving newsletters, check your email and click the link we've sent you.".to_string()).send();
+    // Ok(see_other("/"))
+    Ok(HttpResponse::new(StatusCode::OK))
 }
 
 impl TryFrom<SubscribeFormData> for NewSubscriber {

@@ -25,6 +25,7 @@ rand = { version = "0.8", features = ["std_rng"] }
 secrecy = { version = "0.8", features = ["serde"] }
 serde = { version = "1", features = ["derive"] }
 serde-aux = "4"
+serde_json = "1"
 thiserror = "1"
 tokio = { version = "1", features = ["macros", "rt-multi-thread"] }
 tracing = { version = "0.1", features = ["log"] }
@@ -59,6 +60,5 @@ fake = "2.9"
 linkify = "0.10"
 quickcheck = "1.0.3"
 quickcheck_macros = "1"
-serde_json = "1"
 serde_urlencoded = "0.7.1"
 wiremock = "0.6"
