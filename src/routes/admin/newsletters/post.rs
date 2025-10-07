@@ -13,8 +13,6 @@ use uuid::Uuid;
 
 use crate::{
     authentication::UserId,
-    domain::SubscriberEmail,
-    email_client::EmailClient,
     idempotency::{IdempotencyKey, NextAction, save_response, try_processing},
     utils::{e400, e500, error_chain_fmt, see_other},
 };

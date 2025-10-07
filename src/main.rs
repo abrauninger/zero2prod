@@ -1,4 +1,7 @@
-use zero2prod::{configuration::get_configuration, startup::Application, telemetry};
+use zero2prod::{
+    configuration::get_configuration, issue_delivery_worker::run_worker_until_stopped,
+    startup::Application, telemetry,
+};
 
 #[tokio::main]
 async fn main() {
@@ -25,10 +28,13 @@ async fn main() {
 
     let configuration = get_configuration();
 
-    let application = Application::build(configuration).await;
-
-    application
-        .run_until_stopped()
+    let application = Application::build(configuration.clone())
         .await
-        .expect("Failed to run appllication");
+        .run_until_stopped();
+    let worker = run_worker_until_stopped(configuration);
+
+    tokio::select! {
+        _ = application => {},
+        _ = worker => {},
+    };
 }

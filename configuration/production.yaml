@@ -7,3 +7,4 @@ database:
 email_client:
   base_url: "https://api.postmarkapp.com"
   sender_email: "andy@andybrauninger.com"
+  timeout_milliseconds: 10000
