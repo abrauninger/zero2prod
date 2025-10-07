@@ -1,5 +1,9 @@
 use std::time::Duration;
 
+use fake::{
+    Fake,
+    faker::{internet::en::SafeEmail, name::en::Name},
+};
 use uuid::Uuid;
 use wiremock::{
     Mock, ResponseTemplate,
@@ -221,8 +225,67 @@ async fn concurrent_form_submission_is_handled_gracefully() {
     // Mock verifies on Drop that we have sent the newsletter email only once.
 }
 
+#[tokio::test]
+async fn transient_errors_do_not_cause_duplicate_deliveries_on_retries() {
+    // Arrange
+    let app = spawn_app().await;
+    create_confirmed_subscriber(&app).await;
+    create_confirmed_subscriber(&app).await;
+
+    Mock::given(any())
+        .respond_with(ResponseTemplate::new(200))
+        .up_to_n_times(1)
+        .expect(1)
+        .mount(&app.email_server)
+        .await;
+
+    Mock::given(any())
+        .respond_with(ResponseTemplate::new(500))
+        .up_to_n_times(1)
+        .expect(1)
+        .mount(&app.email_server)
+        .await;
+
+    app.login().await;
+
+    // Act - Part 1- Submit newsletter form
+    // Email delivery fails for the second subscriber
+    let newsletter_request_body = serde_json::json!({
+        "title": "Newsletter title",
+        "content_text": "Newsletter body as plain text",
+        "content_html": "<p>Newsletter body as HTML</p>",
+        "idempotency_key": Uuid::new_v4().to_string(),
+    });
+
+    let response = app.post_publish_newsletter(&newsletter_request_body).await;
+    assert_eq!(response.status().as_u16(), 500);
+
+    // Act - Part 2 - Retry submitting the form
+    // Email delivery will succeed for both subscribers now
+
+    Mock::given(any())
+        .respond_with(ResponseTemplate::new(200))
+        .expect(1)
+        .named("Delivery retry")
+        .mount(&app.email_server)
+        .await;
+
+    let response = app.post_publish_newsletter(&newsletter_request_body).await;
+    assert_eq!(response.status().as_u16(), 303);
+
+    // Assert
+    // Mock verifies on Drop that we have sent the newsletter email only once.
+}
+
 async fn create_unconfirmed_subscriber(app: &TestApp) -> ConfirmationLinks {
-    let body = "name=le%20guin&email=ursula_le_guin%40gmail.com";
+    // Since we might have multiple subscribers in one test, randomize their metadata to avoid conflicts.
+    let name: String = Name().fake();
+    let email: String = SafeEmail().fake();
+    let body = serde_urlencoded::to_string(serde_json::json!({
+        "name": name,
+        "email": email,
+    }))
+    .unwrap();
 
     let _mock_guard = Mock::given(path("/email"))
         .and(method("POST"))
