@@ -198,20 +198,21 @@ impl ResponseError for SubscribeError {
     fn error_response(&self) -> HttpResponse {
         match self {
             SubscribeError::BadFormData(_) => HttpResponse::BadRequest().json(serde_json::json!({
-                "message": "Bad form data, so sorry!"
+                "error_id": "bad_subscription_form_data"
             })),
             SubscribeError::InsertSubscriberError(_) => {
+                // TODO: Reporting this error could give an attacker information about who is subscribed or not.  Silently eat this error and pretend it succeeded.
                 HttpResponse::BadRequest().json(serde_json::json!({
-                    "message": "Couldn't insert that mother-blippin' subscriber!"
+                    "error_id": "insert_subscriber"
                 }))
             }
             SubscribeError::SendConfirmationEmailError(_) => HttpResponse::InternalServerError()
                 .json(serde_json::json!({
-                    "message": "Couldn't send a confirmation email!"
+                    "error_id": "send_confirmation_email"
                 })),
             SubscribeError::UnexpectedError(_) => {
                 HttpResponse::InternalServerError().json(serde_json::json!({
-                    "message": "Internal server error"
+                    "error_id": "internal_error"
                 }))
             }
         }

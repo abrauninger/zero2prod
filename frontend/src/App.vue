@@ -48,9 +48,10 @@ export default {
         })
 
         const responseContent = await response.json()
+        console.log(responseContent)
 
         if (!response.ok) {
-          throw new Error(responseContent.message || 'Submission failed.')
+          throw new Error(error_message(responseContent.error_id))
         }
 
         this.infoMessage = responseContent.message
@@ -62,6 +63,27 @@ export default {
       }
     },
   },
+}
+
+function error_message(error_id: string): string {
+  switch (error_id) {
+    case 'bad_subscription_form_data': {
+      return 'There was a problem with the form data you entered. Please try again.'
+    }
+    // TODO: Remove this one?
+    case 'insert_subscriber': {
+      return 'We were unable to add you as a subscriber. Apologies for the inconvenience.'
+    }
+    case 'send_confirmation_email': {
+      return 'We were unable to send a confirmation email to that email address.'
+    }
+    case 'internal_error': {
+      return 'An internal error occurred, and we were unable to add you to our subscription list. Apologies for the inconvenience.'
+    }
+  }
+
+  console.log(`Unrecognized error ID: ${error_id}`)
+  return 'Submission failed'
 }
 </script>
 
