@@ -30,6 +30,9 @@ pub async fn spawn_app() -> TestApp {
         // Use the mock server as email API
         c.email_client.base_url = email_server.uri();
 
+        // Use a fake authorization token
+        c.email_client.authorization_token = Some(Secret::from("my-secret-token".to_string()));
+
         c
     };
 
@@ -84,6 +87,17 @@ pub struct TestApp {
 }
 
 impl TestApp {
+    pub async fn get_home_html(&self) -> String {
+        self.api_client
+            .get(format!("{}/", &self.address))
+            .send()
+            .await
+            .expect("Failed to execute request")
+            .text()
+            .await
+            .unwrap()
+    }
+
     pub async fn post_login<Body: serde::Serialize>(&self, body: &Body) -> reqwest::Response {
         self.api_client
             .post(format!("{}/login", &self.address))

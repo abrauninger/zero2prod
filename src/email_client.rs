@@ -27,6 +27,7 @@ impl EmailClient {
         }
     }
 
+    #[tracing::instrument(skip_all)]
     pub async fn send_email(
         &self,
         recipient: &SubscriberEmail,
@@ -35,6 +36,9 @@ impl EmailClient {
         text_content: &str,
     ) -> Result<(), reqwest::Error> {
         let url = format!("{}/email", self.base_url);
+
+        tracing::info!(url, "Sending email request to email service");
+
         let request_body = SendEmailRequest {
             from: self.sender.as_ref(),
             to: recipient.as_ref(),

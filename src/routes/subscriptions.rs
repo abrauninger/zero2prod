@@ -1,6 +1,6 @@
 use actix_web::http::StatusCode;
 use actix_web::{HttpResponse, ResponseError, web};
-use anyhow::Context;
+use actix_web_flash_messages::FlashMessage;
 use chrono::Utc;
 use rand::distributions::Alphanumeric;
 use rand::{Rng, thread_rng};
@@ -10,7 +10,7 @@ use uuid::Uuid;
 use crate::domain::{NewSubscriber, SubscriberEmail, SubscriberName};
 use crate::email_client::EmailClient;
 use crate::startup::ApplicationBaseUrl;
-use crate::utils::error_chain_fmt;
+use crate::utils::{e500, error_chain_fmt, see_other};
 
 #[derive(serde::Deserialize)]
 pub struct SubscribeFormData {
@@ -31,27 +31,26 @@ pub async fn subscribe(
     pool: web::Data<PgPool>,
     email_client: web::Data<EmailClient>,
     base_url: web::Data<ApplicationBaseUrl>,
-) -> Result<HttpResponse, SubscribeError> {
-    let new_subscriber = form.0.try_into().map_err(SubscribeError::ValidationError)?;
+) -> Result<HttpResponse, actix_web::Error> {
+    let new_subscriber = match form.0.try_into() {
+        Ok(subscriber) => subscriber,
+        Err(_) => {
+            // TODO: Better error with specific issue in form
+            FlashMessage::error("Error in processing your subscription request").send();
+            return Ok(see_other("/"));
+        }
+    };
 
-    let mut transaction = pool
-        .begin()
-        .await
-        .context("Failed to acquire a Postgres connection from the pool")?;
+    let mut transaction = pool.begin().await.map_err(e500)?;
 
     let subscriber_id = insert_subscriber(&mut transaction, &new_subscriber)
         .await
-        .context("Failed to insert new subscriber in the database")?;
+        .map_err(e500)?;
 
     let subscription_token = generate_subscription_token();
     store_token(&mut transaction, subscriber_id, &subscription_token)
         .await
-        .context("Failed to store the confirmation token for a new subscriber")?;
-
-    transaction
-        .commit()
-        .await
-        .context("Failed to commit SQL transaction to store a new subscriber")?;
+        .map_err(e500)?;
 
     send_confirmation_email(
         &email_client,
@@ -60,9 +59,13 @@ pub async fn subscribe(
         &subscription_token,
     )
     .await
-    .context("Failed to send a confirmation email")?;
+    .map_err(e500)?;
 
-    Ok(HttpResponse::Ok().finish())
+    transaction.commit().await.map_err(e500)?;
+
+    FlashMessage::info("Thank you for subscribing to our newsletter. \
+        To confirm your subscription and start receiving newsletters, check your email and click the link we've sent you.".to_string()).send();
+    Ok(see_other("/"))
 }
 
 impl TryFrom<SubscribeFormData> for NewSubscriber {

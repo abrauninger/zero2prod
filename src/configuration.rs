@@ -119,7 +119,7 @@ pub struct ApplicationSettings {
 pub struct EmailClientSettings {
     pub base_url: String,
     pub sender_email: String,
-    pub authorization_token: Secret<String>,
+    pub authorization_token: Option<Secret<String>>,
     pub timeout_milliseconds: u64,
 }
 
@@ -138,7 +138,9 @@ impl EmailClientSettings {
         EmailClient::new(
             self.base_url,
             sender_email,
-            self.authorization_token,
+            // TODO: Can we do better than this 'expect'?
+            self.authorization_token
+                .expect("email_client.authorization_token should have been set by now"),
             timeout,
         )
     }

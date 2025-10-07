@@ -1,7 +1,9 @@
-use actix_web::{HttpResponse, ResponseError, http::StatusCode, web};
-use anyhow::Context;
+use actix_web::{HttpResponse, web};
+use actix_web_flash_messages::FlashMessage;
 use sqlx::PgPool;
 use uuid::Uuid;
+
+use crate::utils::{e500, see_other};
 
 #[derive(serde::Deserialize)]
 pub struct Parameters {
@@ -12,22 +14,24 @@ pub struct Parameters {
 pub async fn confirm(
     parameters: web::Query<Parameters>,
     pool: web::Data<PgPool>,
-) -> Result<HttpResponse, ConfirmError> {
+) -> Result<HttpResponse, actix_web::Error> {
     let id = get_subscriber_id_from_token(&pool, &parameters.subscription_token)
         .await
-        .context("Unable to get subscriber ID that matches token")?;
+        .map_err(e500)?;
 
-    match id {
-        None => Err(ConfirmError::InvalidTokenError(
-            parameters.subscription_token.clone(),
-        )),
-        Some(subscriber_id) => {
-            confirm_subscriber(&pool, subscriber_id)
-                .await
-                .context("Unable to confirm subscriber")?;
-            Ok(HttpResponse::Ok().finish())
-        }
-    }
+    let Some(subscriber_id) = id else {
+        return Err(e500(anyhow::anyhow!("Invalid subscriber token")));
+    };
+
+    confirm_subscriber(&pool, subscriber_id)
+        .await
+        .map_err(e500)?;
+
+    FlashMessage::info(
+        "You have confirmed your newsletter subscription. Stay tuned for exciting newsletters!",
+    )
+    .send();
+    Ok(see_other("/"))
 }
 
 #[tracing::instrument(name = "Mark subscriber as confirmed", skip(subscriber_id, pool))]
@@ -56,22 +60,4 @@ pub async fn get_subscriber_id_from_token(
     .await?;
 
     Ok(result.map(|r| r.subscriber_id))
-}
-
-#[derive(Debug, thiserror::Error)]
-pub enum ConfirmError {
-    #[error("Token '{0}' is invalid")]
-    InvalidTokenError(String),
-
-    #[error(transparent)]
-    UnexpectedError(#[from] anyhow::Error),
-}
-
-impl ResponseError for ConfirmError {
-    fn status_code(&self) -> StatusCode {
-        match self {
-            ConfirmError::InvalidTokenError(_) => StatusCode::UNAUTHORIZED,
-            ConfirmError::UnexpectedError(_) => StatusCode::INTERNAL_SERVER_ERROR,
-        }
-    }
 }

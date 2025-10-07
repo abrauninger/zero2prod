@@ -1,10 +1,10 @@
 use wiremock::matchers::{method, path};
 use wiremock::{Mock, ResponseTemplate};
 
-use crate::helpers::spawn_app;
+use crate::helpers::{assert_is_redirect_to, spawn_app};
 
 #[tokio::test]
-async fn subscribe_returns_a_200_for_valid_form_data() {
+async fn subscribe_shows_confirmation_for_valid_form_data() {
     // Arrange
     let app = spawn_app().await;
     let body = "name=le%20guin&email=ursula_le_guin%40gmail.com";
@@ -19,7 +19,11 @@ async fn subscribe_returns_a_200_for_valid_form_data() {
     let response = app.post_subscriptions(body.into()).await;
 
     // Assert
-    assert_eq!(200, response.status().as_u16());
+    assert_is_redirect_to(&response, "/");
+
+    // Follow the redirect
+    let home_body = app.get_home_html().await;
+    assert!(home_body.contains("Thank you for subscribing"));
 }
 
 #[tokio::test]
@@ -49,7 +53,7 @@ async fn subscribe_persists_the_new_subscriber() {
 }
 
 #[tokio::test]
-async fn subscribe_returns_a_400_when_fields_are_present_but_empty() {
+async fn subscribe_shows_error_when_fields_are_present_but_empty() {
     // Arrange
     let app = spawn_app().await;
     let test_cases = vec![
@@ -64,10 +68,12 @@ async fn subscribe_returns_a_400_when_fields_are_present_but_empty() {
         let response = app.post_subscriptions(body.into()).await;
 
         // Assert
-        assert_eq!(
-            400,
-            response.status().as_u16(),
-            "The API did not fail with 400 Bad Request when the payload was {description}."
+        assert_is_redirect_to(&response, "/");
+
+        let home_html = app.get_home_html().await;
+        assert!(
+            home_html.contains("Error"),
+            "The subscription form did not result in an error for an erroneous case: {description}",
         );
     }
 }

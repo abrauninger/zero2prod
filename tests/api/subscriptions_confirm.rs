@@ -3,7 +3,7 @@ use wiremock::{
     matchers::{method, path},
 };
 
-use crate::helpers::spawn_app;
+use crate::helpers::{assert_is_redirect_to, spawn_app};
 
 #[tokio::test]
 async fn confirmations_without_token_are_rejected_with_a_400() {
@@ -20,7 +20,7 @@ async fn confirmations_without_token_are_rejected_with_a_400() {
 }
 
 #[tokio::test]
-async fn link_returned_by_subscribe_returns_a_200_if_called() {
+async fn link_returned_by_subscribe_redirects_successfully_if_called() {
     // Arrange
     let app = spawn_app().await;
     let body = "name=le%20guin&email=ursula_le_guin%40gmail.com";
@@ -31,15 +31,25 @@ async fn link_returned_by_subscribe_returns_a_200_if_called() {
         .mount(&app.email_server)
         .await;
 
+    // Act
     app.post_subscriptions(body.into()).await;
     let email_request = &app.email_server.received_requests().await.unwrap()[0];
     let confirmation_links = app.get_confirmation_links(email_request);
 
-    // Act
-    let response = reqwest::get(confirmation_links.html).await.unwrap();
+    let response = app
+        .api_client
+        .get(confirmation_links.html)
+        .send()
+        .await
+        .unwrap();
 
     // Assert
-    assert_eq!(response.status().as_u16(), 200);
+    assert_is_redirect_to(&response, "/");
+
+    let home_html = app.get_home_html().await;
+
+    dbg!(&home_html);
+    assert!(home_html.contains("You have confirmed"));
 }
 
 #[tokio::test]
@@ -77,7 +87,7 @@ async fn clicking_on_the_confirmation_link_confirms_a_subscriber() {
 }
 
 #[tokio::test]
-async fn confirm_returns_401_if_token_is_invalid() {
+async fn confirm_returns_500_if_token_is_invalid() {
     // Arrange
     let app = spawn_app().await;
     let body = "name=le%20guin&email=ursula_le_guin%40gmail.com";
@@ -102,5 +112,5 @@ async fn confirm_returns_401_if_token_is_invalid() {
     let response = reqwest::get(confirmation_links.html).await.unwrap();
 
     // Assert
-    assert_eq!(response.status().as_u16(), 401);
+    assert_eq!(response.status().as_u16(), 500);
 }
