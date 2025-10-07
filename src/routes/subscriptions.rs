@@ -31,7 +31,7 @@ pub async fn subscribe(
     pool: web::Data<PgPool>,
     email_client: web::Data<EmailClient>,
     base_url: web::Data<ApplicationBaseUrl>,
-) -> Result<HttpResponse, actix_web::Error> {
+) -> Result<HttpResponse, SubscribeError> {
     // let new_subscriber = match form.0.try_into() {
     //     Ok(subscriber) => subscriber,
     //     Err(_) => {
@@ -40,23 +40,23 @@ pub async fn subscribe(
     //         return Ok(see_other("/"));
     //     }
     // };
-    let new_subscriber = form.0.try_into().map_err(e500)?;
+    let new_subscriber = form.0.try_into().map_err(SubscribeError::BadFormData)?;
 
-    let mut transaction = pool.begin().await.map_err(e500)?;
+    let mut transaction = pool
+        .begin()
+        .await
+        //.map_err(e500)?;
+        .unwrap();
 
-    let subscriber_id = match insert_subscriber(&mut transaction, &new_subscriber).await {
-        Ok(subscriber_id) => subscriber_id,
-        Err(_) => {
-            return Ok(HttpResponse::BadRequest().json(serde_json::json!({
-                "message": "So unfortunate"
-            })));
-        }
-    };
+    let subscriber_id = insert_subscriber(&mut transaction, &new_subscriber)
+        .await
+        .map_err(SubscribeError::InsertSubscriberError)?;
 
     let subscription_token = generate_subscription_token();
     store_token(&mut transaction, subscriber_id, &subscription_token)
         .await
-        .map_err(e500)?;
+        //.map_err(e500)?;
+        .unwrap();
 
     send_confirmation_email(
         &email_client,
@@ -65,9 +65,13 @@ pub async fn subscribe(
         &subscription_token,
     )
     .await
-    .map_err(e500)?;
+    .map_err(SubscribeError::SendConfirmationEmailError)?;
 
-    transaction.commit().await.map_err(e500)?;
+    transaction
+        .commit()
+        .await
+        //.map_err(e500)?;
+        .unwrap();
 
     // FlashMessage::info("Thank you for subscribing to our newsletter. \
     //     To confirm your subscription and start receiving newsletters, check your email and click the link we've sent you.".to_string()).send();
@@ -168,10 +172,17 @@ fn generate_subscription_token() -> String {
         .collect()
 }
 
+// TODO: Do we need thiserror?
 #[derive(thiserror::Error)]
 pub enum SubscribeError {
-    #[error("{0}")]
-    ValidationError(String),
+    #[error("Invalid form data: '{0}'")]
+    BadFormData(String),
+
+    #[error("Unable to insert subscriber")]
+    InsertSubscriberError(#[from] sqlx::Error),
+
+    #[error("Unable to send confirmation email")]
+    SendConfirmationEmailError(#[from] reqwest::Error),
 
     #[error(transparent)]
     UnexpectedError(#[from] anyhow::Error),
@@ -184,10 +195,25 @@ impl std::fmt::Debug for SubscribeError {
 }
 
 impl ResponseError for SubscribeError {
-    fn status_code(&self) -> StatusCode {
+    fn error_response(&self) -> HttpResponse {
         match self {
-            SubscribeError::ValidationError(_) => StatusCode::BAD_REQUEST,
-            SubscribeError::UnexpectedError(_) => StatusCode::INTERNAL_SERVER_ERROR,
+            SubscribeError::BadFormData(_) => HttpResponse::BadRequest().json(serde_json::json!({
+                "message": "Bad form data, so sorry!"
+            })),
+            SubscribeError::InsertSubscriberError(_) => {
+                HttpResponse::BadRequest().json(serde_json::json!({
+                    "message": "Couldn't insert that mother-blippin' subscriber!"
+                }))
+            }
+            SubscribeError::SendConfirmationEmailError(_) => HttpResponse::InternalServerError()
+                .json(serde_json::json!({
+                    "message": "Couldn't send a confirmation email!"
+                })),
+            SubscribeError::UnexpectedError(_) => {
+                HttpResponse::InternalServerError().json(serde_json::json!({
+                    "message": "Internal server error"
+                }))
+            }
         }
     }
 }

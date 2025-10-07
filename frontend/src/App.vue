@@ -68,6 +68,11 @@ export default {
 <style scoped>
 .error-message {
   color: darkred;
+  background-color: pink;
+  border-style: solid;
+  border-width: 1px;
+  border-color: darkred;
   margin-top: 10px;
+  padding: 10px;
 }
 </style>
