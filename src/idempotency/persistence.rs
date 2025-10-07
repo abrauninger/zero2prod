@@ -5,7 +5,7 @@ use crate::authentication::UserId;
 
 use super::IdempotencyKey;
 
-pub async fn get_saved_response(
+async fn get_saved_response(
     pool: &PgPool,
     idempotency_key: &IdempotencyKey,
     user_id: &UserId,
@@ -13,9 +13,9 @@ pub async fn get_saved_response(
     let saved_response = sqlx::query!(
         r#"
         SELECT
-            response_status_code,
-            response_headers as "response_headers: Vec<HeaderPairRecord>",
-            response_body
+            response_status_code as "response_status_code!",
+            response_headers as "response_headers!: Vec<HeaderPairRecord>",
+            response_body as "response_body!"
         FROM idempotency
         WHERE
             user_id = $1 AND
@@ -61,15 +61,14 @@ pub async fn save_response(
     // Use 'query_unchecked' because 'query' would fail due to the custom header_pair type.
     sqlx::query_unchecked!(
         r#"
-        INSERT INTO idempotency (
-            user_id,
-            idempotency_key,
-            response_status_code,
-            response_headers,
-            response_body,
-            created_at
-        )
-        VALUES ($1, $2, $3, $4, $5, now())
+        UPDATE idempotency
+        SET
+            response_status_code = $3,
+            response_headers = $4,
+            response_body = $5
+        WHERE
+            user_id = $1 AND
+            idempotency_key = $2
         "#,
         **user_id,
         idempotency_key.as_ref(),
@@ -89,4 +88,43 @@ pub async fn save_response(
 struct HeaderPairRecord {
     name: String,
     value: Vec<u8>,
+}
+
+pub enum NextAction {
+    StartProcessing,
+    ReturnSavedResponse(HttpResponse),
+}
+
+pub async fn try_processing(
+    pool: &PgPool,
+    idempotency_key: &IdempotencyKey,
+    user_id: &UserId,
+) -> Result<NextAction, anyhow::Error> {
+    let inserted_row_count = sqlx::query!(
+        r#"
+        INSERT INTO idempotency (
+            user_id,
+            idempotency_key,
+            created_at
+        )
+        VALUES ($1, $2, now())
+        ON CONFLICT DO NOTHING
+        "#,
+        **user_id,
+        idempotency_key.as_ref()
+    )
+    .execute(pool)
+    .await?
+    .rows_affected();
+
+    if inserted_row_count > 0 {
+        Ok(NextAction::StartProcessing)
+    } else {
+        let saved_response = get_saved_response(pool, idempotency_key, user_id)
+            .await?
+            .ok_or_else(|| {
+                anyhow::anyhow!("We expected a saved response, but we didn't find it")
+            })?;
+        Ok(NextAction::ReturnSavedResponse(saved_response))
+    }
 }
