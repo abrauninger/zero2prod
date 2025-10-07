@@ -70,7 +70,9 @@ pub async fn publish_newsletter(
 }
 
 fn success_message() -> FlashMessage {
-    FlashMessage::info("Your newsletter has been published.")
+    FlashMessage::info(
+        "Your newsletter publish request has been accepted, and emails will go out shortly.",
+    )
 }
 
 #[tracing::instrument(skip_all)]

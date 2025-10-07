@@ -30,18 +30,7 @@ pub struct Application {
 impl Application {
     pub async fn build(configuration: Settings) -> Self {
         let connection_pool = get_connection_pool(&configuration.database);
-
-        let sender_email = configuration
-            .email_client
-            .sender()
-            .expect("Invalid sender email address.");
-
-        let email_client = EmailClient::new(
-            configuration.email_client.base_url,
-            sender_email,
-            configuration.email_client.authorization_token,
-            /*timeout: */ std::time::Duration::from_secs(10),
-        );
+        let email_client = configuration.email_client.client();
 
         let address = format!(
             "{}:{}",

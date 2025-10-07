@@ -7,6 +7,8 @@ use std::sync::LazyLock;
 use uuid::Uuid;
 use wiremock::MockServer;
 use zero2prod::configuration::{DatabaseSettings, get_configuration};
+use zero2prod::email_client::EmailClient;
+use zero2prod::issue_delivery_worker::{ExecutionOutcome, try_execute_task};
 use zero2prod::startup::{Application, get_connection_pool};
 use zero2prod::telemetry::{get_subscriber, init_subscriber};
 
@@ -49,6 +51,7 @@ pub async fn spawn_app() -> TestApp {
         port: application_port,
         db_pool: get_connection_pool(&configuration.database),
         email_server,
+        email_client: configuration.email_client.client(),
         test_user: TestUser::generate(),
         api_client: client,
     };
@@ -75,6 +78,7 @@ pub struct TestApp {
     pub port: u16,
     pub db_pool: PgPool,
     pub email_server: MockServer,
+    pub email_client: EmailClient,
     pub test_user: TestUser,
     pub api_client: reqwest::Client,
 }
@@ -212,6 +216,18 @@ impl TestApp {
             .send()
             .await
             .expect("Failed to execute request")
+    }
+
+    pub async fn dispatch_all_pending_emails(&self) {
+        loop {
+            if let ExecutionOutcome::EmptyQueue =
+                try_execute_task(&self.db_pool, &self.email_client)
+                    .await
+                    .unwrap()
+            {
+                break;
+            }
+        }
     }
 }
 
