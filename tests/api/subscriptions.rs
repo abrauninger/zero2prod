@@ -1,7 +1,7 @@
 use wiremock::matchers::{method, path};
 use wiremock::{Mock, ResponseTemplate};
 
-use crate::helpers::spawn_app;
+use crate::helpers::{assert_error_response, assert_successful_response, spawn_app};
 
 #[tokio::test]
 async fn subscribe_shows_confirmation_for_valid_form_data() {
@@ -22,7 +22,7 @@ async fn subscribe_shows_confirmation_for_valid_form_data() {
     let response = app.post_subscriptions(body).await;
 
     // Assert
-    assert_eq!(response.status().as_u16(), 200);
+    assert_successful_response(&response);
 }
 
 #[tokio::test]
@@ -201,5 +201,5 @@ async fn subscribe_fails_if_there_is_a_fatal_database_error() {
     // Assert
     // Right now this is reported as a 400 BAD_REQUEST.  Maybe 500 would be better in this case?  But we don't know the difference between a primary-key violation (input error)
     // and a more catastrophic internal error (table column is missing), so we err on the side of reporting it as an input error.
-    assert_eq!(response.status().as_u16(), 400);
+    assert_error_response(response, 400, "insert_subscriber").await;
 }

@@ -323,3 +323,23 @@ pub fn assert_is_redirect_to(response: &reqwest::Response, location: &str) {
     assert_eq!(response.status().as_u16(), 303);
     assert_eq!(response.headers().get("Location").unwrap(), location);
 }
+
+pub fn assert_successful_response(response: &reqwest::Response) {
+    assert_eq!(response.status().as_u16(), 200);
+}
+
+#[derive(serde::Deserialize)]
+struct ErrorResponse {
+    error_id: String,
+}
+
+pub async fn assert_error_response(
+    response: reqwest::Response,
+    expected_status: u16,
+    expected_error_id: &str,
+) {
+    assert_eq!(response.status().as_u16(), expected_status);
+
+    let error = response.json::<ErrorResponse>().await.unwrap();
+    assert_eq!(error.error_id, expected_error_id);
+}
