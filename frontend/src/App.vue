@@ -20,6 +20,10 @@
     <div v-if="errorMessage" class="error-message">
       {{ errorMessage }}
     </div>
+
+    <div v-if="infoMessage" class="info-message">
+      {{ infoMessage }}
+    </div>
   </form>
 </template>
 
@@ -30,7 +34,7 @@ export default {
       name: '',
       email: '',
       errorMessage: null as string | null,
-      infoMessage: null,
+      infoMessage: null as string | null,
     }
   },
   methods: {
@@ -47,17 +51,20 @@ export default {
           },
         })
 
-        const responseContent = await response.json()
-        console.log(responseContent)
+        console.log('Response received!')
 
         if (!response.ok) {
-          throw new Error(error_message(responseContent.error_id))
+          const responseContent = await response.json()
+          console.log(responseContent)
+          this.errorMessage = error_message(responseContent.error_id)
+        } else {
+          this.infoMessage =
+            "You have subscribed to our newsletter. Stay tuned, you're going to love it!"
         }
-
-        this.infoMessage = responseContent.message
       } catch (error: unknown) {
         if (error instanceof Error) {
-          this.errorMessage = error.message
+          this.errorMessage =
+            'An internal front-end error has occured. Apologies for the inconvenience.'
         }
         console.error('Error during submission: ', error)
       }
@@ -67,12 +74,8 @@ export default {
 
 function error_message(error_id: string): string {
   switch (error_id) {
-    case 'bad_subscription_form_data': {
+    case 'invalid_data': {
       return 'There was a problem with the form data you entered. Please try again.'
-    }
-    // TODO: Remove this one?
-    case 'insert_subscriber': {
-      return 'We were unable to add you as a subscriber. Apologies for the inconvenience.'
     }
     case 'send_confirmation_email': {
       return 'We were unable to send a confirmation email to that email address.'
@@ -94,6 +97,16 @@ function error_message(error_id: string): string {
   border-style: solid;
   border-width: 1px;
   border-color: darkred;
+  margin-top: 10px;
+  padding: 10px;
+}
+
+.info-message {
+  color: darkgreen;
+  background-color: lightgreen;
+  border-style: solid;
+  border-width: 1px;
+  border-color: darkgreen;
   margin-top: 10px;
   padding: 10px;
 }
