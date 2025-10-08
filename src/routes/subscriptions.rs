@@ -37,7 +37,7 @@ pub async fn subscribe(
 
     let subscriber_id = insert_subscriber(&mut transaction, &new_subscriber)
         .await
-        .map_err(SubscribeError::InsertSubscriberError)?;
+        .map_err(SubscribeError::DatabaseError)?;
 
     let subscription_token = generate_subscription_token();
     store_token(&mut transaction, subscriber_id, &subscription_token).await?;
@@ -156,26 +156,24 @@ pub enum SubscribeError {
     BadFormData(String),
 
     #[error("Unable to insert subscriber")]
-    InsertSubscriberError(#[from] sqlx::Error),
+    DatabaseError(#[from] sqlx::Error),
 
     #[error("Unable to send confirmation email")]
     SendConfirmationEmailError(#[from] reqwest::Error),
-    // #[error(transparent)]
-    // UnexpectedError(#[from] anyhow::Error),
 }
 
 impl SubscribeError {
     fn response_builder(&self) -> HttpResponseBuilder {
         match self {
             SubscribeError::BadFormData(_) => HttpResponse::BadRequest(),
-            SubscribeError::InsertSubscriberError(_) => HttpResponse::BadRequest(),
+            SubscribeError::DatabaseError(_) => HttpResponse::InternalServerError(),
             SubscribeError::SendConfirmationEmailError(_) => HttpResponse::InternalServerError(),
         }
     }
     fn error_id(&self) -> &str {
         match self {
             SubscribeError::BadFormData(_) => "invalid_data",
-            SubscribeError::InsertSubscriberError(_) => "insert_subscriber",
+            SubscribeError::DatabaseError(_) => "internal",
             SubscribeError::SendConfirmationEmailError(_) => "send_confirmation_email",
         }
     }

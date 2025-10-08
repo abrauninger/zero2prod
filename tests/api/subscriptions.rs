@@ -195,7 +195,5 @@ async fn subscribe_fails_if_there_is_a_fatal_database_error() {
     let response = app.post_subscriptions(body).await;
 
     // Assert
-    // Right now this is reported as a 400 BAD_REQUEST.  Maybe 500 would be better in this case?  But we don't know the difference between a primary-key violation (input error)
-    // and a more catastrophic internal error (table column is missing), so we err on the side of reporting it as an input error.
-    assert_error_response(response, 400, "insert_subscriber").await;
+    assert_error_response(response, 500, "internal").await;
 }
