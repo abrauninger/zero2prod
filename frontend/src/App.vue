@@ -1,13 +1,7 @@
 <template>
-  <SubscribeForm />
+  <RouterLink to="/">Home</RouterLink>
+  <RouterLink to="/admin">Admin dashboard</RouterLink>
+  <div>
+    <RouterView />
+  </div>
 </template>
-
-<script lang="ts">
-import SubscribeForm from './SubscribeForm.vue'
-
-export default {
-  components: {
-    SubscribeForm,
-  },
-}
-</script>
