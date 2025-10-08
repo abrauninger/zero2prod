@@ -28,6 +28,8 @@
 </template>
 
 <script lang="ts">
+import { addSubscriber } from './api.ts'
+
 export default {
   data() {
     return {
@@ -43,13 +45,7 @@ export default {
       this.infoMessage = null
 
       try {
-        const response = await fetch('/api/subscriptions', {
-          method: 'POST',
-          body: JSON.stringify({ name: this.name, email: this.email }),
-          headers: {
-            'Content-Type': 'application/json',
-          },
-        })
+        const response = await addSubscriber(this.name, this.email)
 
         console.log('Response received!')
 
