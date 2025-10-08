@@ -199,7 +199,7 @@ async fn subscribe_fails_if_there_is_a_fatal_database_error() {
 }
 
 #[tokio::test]
-async fn subscribe_fails_for_duplicate_subscribers() {
+async fn subscribe_succeeds_silently_for_duplicate_subscribers() {
     // Arrange
     let app = spawn_app().await;
     let body = serde_json::json!({
@@ -222,6 +222,13 @@ async fn subscribe_fails_for_duplicate_subscribers() {
     let response = app.post_subscriptions(body).await;
 
     // Assert
-    // TODO: This shouldn't be an internal server error. Probably should just be a successful response?
-    assert_error_response(response, 500, "internal").await;
+    assert_successful_response(&response);
+
+    // There should be only one subscriber
+    let saved_subscribers = sqlx::query!("SELECT email, name, status FROM subscriptions")
+        .fetch_all(&app.db_pool)
+        .await
+        .expect("Failed to fetch saved subscriptions");
+
+    assert_eq!(saved_subscribers.len(), 1);
 }

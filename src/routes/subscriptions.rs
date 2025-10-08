@@ -33,6 +33,12 @@ pub async fn subscribe(
 ) -> Result<HttpResponse, SubscribeError> {
     let new_subscriber = form.0.try_into().map_err(SubscribeError::BadFormData)?;
 
+    // TODO: Should we check within the context of a transaction in order to get transaction isolation?
+    // TODO: What if multiple 'subscribe' requests come in simultaneously for the same user?
+    if already_subscribed(&new_subscriber, &pool).await? {
+        return Ok(HttpResponse::new(StatusCode::OK));
+    }
+
     let mut transaction = pool.begin().await?;
 
     let subscriber_id = insert_subscriber(&mut transaction, &new_subscriber)
@@ -112,6 +118,27 @@ async fn send_confirmation_email(
     email_client
         .send_email(&new_subscriber.email, "Welcome!", &html_body, &plain_body)
         .await
+}
+
+#[tracing::instrument(
+    name = "Checking whether subscriber already exists",
+    skip(new_subscriber, pool)
+)]
+async fn already_subscribed(
+    new_subscriber: &NewSubscriber,
+    pool: &PgPool,
+) -> Result<bool, sqlx::Error> {
+    Ok(sqlx::query!(
+        r#"
+        SELECT id
+        FROM subscriptions
+        WHERE email = $1
+        "#,
+        new_subscriber.email.as_ref()
+    )
+    .fetch_optional(pool)
+    .await?
+    .is_some())
 }
 
 #[tracing::instrument(
