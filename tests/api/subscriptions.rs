@@ -1,7 +1,7 @@
 use wiremock::matchers::{method, path};
 use wiremock::{Mock, ResponseTemplate};
 
-use crate::helpers::{assert_is_redirect_to, spawn_app};
+use crate::helpers::spawn_app;
 
 #[tokio::test]
 async fn subscribe_shows_confirmation_for_valid_form_data() {

@@ -1,6 +1,5 @@
 use actix_web::http::StatusCode;
 use actix_web::{HttpResponse, ResponseError, web};
-use actix_web_flash_messages::FlashMessage;
 use chrono::Utc;
 use rand::distributions::Alphanumeric;
 use rand::{Rng, thread_rng};
@@ -10,7 +9,7 @@ use uuid::Uuid;
 use crate::domain::{NewSubscriber, SubscriberEmail, SubscriberName};
 use crate::email_client::EmailClient;
 use crate::startup::ApplicationBaseUrl;
-use crate::utils::{e400, e500, error_chain_fmt, see_other};
+use crate::utils::error_chain_fmt;
 
 #[derive(serde::Deserialize)]
 pub struct SubscribeFormData {
