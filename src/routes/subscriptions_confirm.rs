@@ -3,7 +3,7 @@ use actix_web_flash_messages::FlashMessage;
 use sqlx::PgPool;
 use uuid::Uuid;
 
-use crate::utils::{e500, see_other};
+use crate::utils::e500;
 
 #[derive(serde::Deserialize)]
 pub struct Parameters {
@@ -31,7 +31,7 @@ pub async fn confirm(
         "You have confirmed your newsletter subscription. Stay tuned for exciting newsletters!",
     )
     .send();
-    Ok(see_other("/"))
+    Ok(HttpResponse::Ok().finish())
 }
 
 #[tracing::instrument(name = "Mark subscriber as confirmed", skip(subscriber_id, pool))]

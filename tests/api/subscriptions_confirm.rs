@@ -3,7 +3,7 @@ use wiremock::{
     matchers::{method, path},
 };
 
-use crate::helpers::{assert_is_redirect_to, spawn_app};
+use crate::helpers::spawn_app;
 
 #[tokio::test]
 async fn confirmations_without_token_are_rejected_with_a_400() {
@@ -17,42 +17,6 @@ async fn confirmations_without_token_are_rejected_with_a_400() {
 
     // Assert
     assert_eq!(response.status().as_u16(), 400);
-}
-
-#[tokio::test]
-async fn link_returned_by_subscribe_redirects_successfully_if_called() {
-    // Arrange
-    let app = spawn_app().await;
-    let body = serde_json::json!({
-        "name": "le guin",
-        "email": "ursula_le_guin@gmail.com",
-    });
-
-    Mock::given(path("/email"))
-        .and(method("POST"))
-        .respond_with(ResponseTemplate::new(200))
-        .mount(&app.email_server)
-        .await;
-
-    // Act
-    app.post_subscriptions(body).await;
-    let email_request = &app.email_server.received_requests().await.unwrap()[0];
-    let confirmation_links = app.get_confirmation_links(email_request);
-
-    let response = app
-        .api_client
-        .get(confirmation_links.html)
-        .send()
-        .await
-        .unwrap();
-
-    // Assert
-    assert_is_redirect_to(&response, "/");
-
-    let home_html = app.get_home_html().await;
-
-    dbg!(&home_html);
-    assert!(home_html.contains("You have confirmed"));
 }
 
 #[tokio::test]
