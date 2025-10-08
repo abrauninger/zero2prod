@@ -3,7 +3,7 @@ use crate::configuration::{DatabaseSettings, Settings};
 use crate::email_client::EmailClient;
 use crate::routes::{
     admin_dashboard, change_password, change_password_form, confirm, health_check, log_out, login,
-    login_form, publish_newsletter, publish_newsletter_form, subscribe, user_metadata,
+    publish_newsletter, publish_newsletter_form, subscribe, user_metadata,
 };
 use actix_session::SessionMiddleware;
 use actix_session::storage::RedisSessionStore;
@@ -109,7 +109,6 @@ async fn run(
             )
             .wrap(TracingLogger::default())
             .app_data(json_config())
-            .route("/login", web::get().to(login_form))
             .route("/login", web::post().to(login))
             .route("/health_check", web::get().to(health_check))
             .route("/subscriptions", web::post().to(subscribe))
