@@ -90,21 +90,10 @@ impl TestApp {
     pub async fn post_login<Body: serde::Serialize>(&self, body: &Body) -> reqwest::Response {
         self.api_client
             .post(format!("{}/login", &self.address))
-            .form(body)
+            .json(body)
             .send()
             .await
             .expect("Failed to execute request")
-    }
-
-    pub async fn get_login_html(&self) -> String {
-        self.api_client
-            .get(format!("{}/login", &self.address))
-            .send()
-            .await
-            .expect("Failed to execute request")
-            .text()
-            .await
-            .unwrap()
     }
 
     pub async fn login(&self) {
@@ -220,9 +209,9 @@ impl TestApp {
             .expect("Failed to execute request")
     }
 
-    pub async fn post_logout(&self) -> reqwest::Response {
+    pub async fn get_logout(&self) -> reqwest::Response {
         self.api_client
-            .post(format!("{}/admin/logout", &self.address))
+            .get(format!("{}/admin/logout", &self.address))
             .send()
             .await
             .expect("Failed to execute request")

@@ -1,4 +1,4 @@
-use crate::helpers::{assert_error_response, assert_is_redirect_to, spawn_app};
+use crate::helpers::{assert_error_response, assert_successful_response, spawn_app};
 
 #[tokio::test]
 async fn username_without_login_returns_401() {
@@ -41,14 +41,10 @@ async fn logout_clears_session_state() {
     assert!(html_page.contains(&format!("Welcome {}", app.test_user.username)));
 
     // Act - Part 2 - Logout
-    let response = app.post_logout().await;
-    assert_is_redirect_to(&response, "/login");
+    let response = app.get_logout().await;
+    assert_successful_response(&response);
 
-    // Act - Part 3 - Follow the redirect
-    let html_page = app.get_login_html().await;
-    assert!(html_page.contains("You have successfully logged out"));
-
-    // Act - Part 4 - Attempt to load admin panel
+    // Act - Part 3 - Attempt to load admin panel
     let response = app.get_admin_dashboard().await;
     assert_error_response(response, 401, "not_logged_in").await;
 }

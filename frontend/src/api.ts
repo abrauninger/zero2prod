@@ -13,3 +13,19 @@ export function getUsername() {
     method: 'GET',
   })
 }
+
+export function login(username: string, password: string) {
+  return fetch('/api/login', {
+    method: 'POST',
+    body: JSON.stringify({ username, password }),
+    headers: {
+      'Content-Type': 'application/json',
+    },
+  })
+}
+
+export function logout() {
+  return fetch('/api/admin/logout', {
+    method: 'GET',
+  })
+}

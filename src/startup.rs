@@ -123,7 +123,7 @@ async fn run(
                     .route("/password", web::post().to(change_password))
                     .route("/newsletters", web::get().to(publish_newsletter_form))
                     .route("/newsletters", web::post().to(publish_newsletter))
-                    .route("/logout", web::post().to(log_out)),
+                    .route("/logout", web::get().to(log_out)),
             )
             .app_data(db_pool.clone())
             .app_data(email_client.clone())

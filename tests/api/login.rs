@@ -1,7 +1,7 @@
-use crate::helpers::{assert_is_redirect_to, spawn_app};
+use crate::helpers::{assert_error_response, assert_is_redirect_to, spawn_app};
 
 #[tokio::test]
-async fn error_flash_message_is_set_on_failure() {
+async fn invalid_credentials_results_in_error_response() {
     // Arrange
     let app = spawn_app().await;
 
@@ -14,18 +14,7 @@ async fn error_flash_message_is_set_on_failure() {
     let response = app.post_login(&login_body).await;
 
     // Assert
-    assert_is_redirect_to(&response, "/login");
-
-    // Act, part 2
-    let html_page = app.get_login_html().await;
-
-    // Assert, part 2
-    assert!(html_page.contains(r#"<p><i>Authentication failed</i></p>"#));
-
-    // Act, part 3
-    // Reload the login page
-    let html_page = app.get_login_html().await;
-    assert!(!html_page.contains("Authentication failed"));
+    assert_error_response(response, 400, "invalid_credentials").await;
 }
 
 #[tokio::test]

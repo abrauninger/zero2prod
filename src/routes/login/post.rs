@@ -1,5 +1,4 @@
-use actix_web::{HttpResponse, error::InternalError, http::header::LOCATION, web};
-use actix_web_flash_messages::FlashMessage;
+use actix_web::{HttpResponse, HttpResponseBuilder, ResponseError, http::header::LOCATION, web};
 use secrecy::Secret;
 use sqlx::PgPool;
 
@@ -17,10 +16,10 @@ pub struct FormData {
 
 #[tracing::instrument(skip(form, pool, session), fields(username=tracing::field::Empty, user_id=tracing::field::Empty))]
 pub async fn login(
-    form: web::Form<FormData>,
+    form: web::Json<FormData>,
     pool: web::Data<PgPool>,
     session: TypedSession,
-) -> Result<HttpResponse, InternalError<LoginError>> {
+) -> Result<HttpResponse, LoginError> {
     let credentials = Credentials {
         username: form.0.username,
         password: form.0.password,
@@ -35,29 +34,17 @@ pub async fn login(
             session.renew();
             session
                 .insert_user_id(user_id)
-                .map_err(|e| login_redirect(LoginError::UnexpectedError(e.into())))?;
+                .map_err(|e| LoginError::UnexpectedError(e.into()))?;
 
             Ok(HttpResponse::SeeOther()
                 .insert_header((LOCATION, "/admin/dashboard"))
                 .finish())
         }
-        Err(e) => {
-            let e = match e {
-                AuthError::InvalidCredentials(_) => LoginError::AuthError(e.into()),
-                AuthError::UnexpectedError(_) => LoginError::UnexpectedError(e.into()),
-            };
-            Err(login_redirect(e))
-        }
+        Err(e) => match e {
+            AuthError::InvalidCredentials(_) => Err(LoginError::AuthError(e.into())),
+            AuthError::UnexpectedError(_) => Err(LoginError::UnexpectedError(e.into())),
+        },
     }
-}
-
-fn login_redirect(e: LoginError) -> InternalError<LoginError> {
-    FlashMessage::error(e.to_string()).send();
-
-    let response = HttpResponse::SeeOther()
-        .insert_header((LOCATION, "/login"))
-        .finish();
-    InternalError::from_response(e, response)
 }
 
 #[derive(thiserror::Error)]
@@ -69,8 +56,31 @@ pub enum LoginError {
     UnexpectedError(#[from] anyhow::Error),
 }
 
+impl LoginError {
+    fn response_builder(&self) -> HttpResponseBuilder {
+        match self {
+            LoginError::AuthError(_) => HttpResponse::BadRequest(),
+            LoginError::UnexpectedError(_) => HttpResponse::InternalServerError(),
+        }
+    }
+    fn error_id(&self) -> &str {
+        match self {
+            LoginError::AuthError(_) => "invalid_credentials",
+            LoginError::UnexpectedError(_) => "internal",
+        }
+    }
+}
+
 impl std::fmt::Debug for LoginError {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         error_chain_fmt(self, f)
+    }
+}
+
+impl ResponseError for LoginError {
+    fn error_response(&self) -> HttpResponse {
+        self.response_builder().json(serde_json::json!({
+            "error_id": self.error_id()
+        }))
     }
 }

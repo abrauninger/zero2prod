@@ -1,12 +1,13 @@
 <template>
   <h1>This is the admin dashboard</h1>
   <p>You are logged in as: {{ username }}</p>
+  <button @click="logout">Log out</button>
 </template>
 
 <script setup lang="ts">
 import { ref, watchEffect } from 'vue'
 import { useRouter } from 'vue-router'
-import { getUsername } from './api.ts'
+import { getUsername, logout as logoutApi } from './api.ts'
 import type { Ref } from 'vue'
 
 const username: Ref<string | null> = ref(null)
@@ -17,15 +18,20 @@ watchEffect(async () => {
 
   if (!response.ok) {
     if (response.status == 401) {
-      // TODO: Redirect to '/login'
-      router.replace('/')
+      router.replace('/login')
     } else {
+      // TODO: Temp
       username.value = "Couldn't get it!"
     }
   } else {
     const responseContent = await response.json()
     console.log(responseContent)
-    username.value = 'Got it!'
+    username.value = responseContent.username
   }
 })
+
+async function logout() {
+  await logoutApi()
+  router.replace('/')
+}
 </script>

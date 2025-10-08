@@ -1,6 +1,8 @@
 use uuid::Uuid;
 
-use crate::helpers::{assert_error_response, assert_is_redirect_to, spawn_app};
+use crate::helpers::{
+    assert_error_response, assert_is_redirect_to, assert_successful_response, spawn_app,
+};
 
 #[tokio::test]
 async fn you_must_be_logged_in_to_see_the_change_password_form() {
@@ -110,14 +112,10 @@ async fn changing_password_works() {
     assert!(html_page.contains("Your password has been changed"));
 
     // Act - Part 3 - Logout
-    let response = app.post_logout().await;
-    assert_is_redirect_to(&response, "/login");
+    let response = app.get_logout().await;
+    assert_successful_response(&response);
 
-    // Act - Part 4 - Follow the redirect
-    let html_page = app.get_login_html().await;
-    assert!(html_page.contains("You have successfully logged out"));
-
-    // Act - Part 5 - Log in using the new password
+    // Act - Part 4 - Log in using the new password
     let response = app
         .post_login(&serde_json::json!({
             "username": &app.test_user.username,
