@@ -31,32 +31,16 @@ pub async fn subscribe(
     email_client: web::Data<EmailClient>,
     base_url: web::Data<ApplicationBaseUrl>,
 ) -> Result<HttpResponse, SubscribeError> {
-    // let new_subscriber = match form.0.try_into() {
-    //     Ok(subscriber) => subscriber,
-    //     Err(_) => {
-    //         // TODO: Better error with specific issue in form
-    //         FlashMessage::error("Error in processing your subscription request").send();
-    //         return Ok(see_other("/"));
-    //     }
-    // };
-    let new_subscriber = form.0.try_into();
-    let new_subscriber = new_subscriber.map_err(SubscribeError::BadFormData)?;
+    let new_subscriber = form.0.try_into().map_err(SubscribeError::BadFormData)?;
 
-    let mut transaction = pool
-        .begin()
-        .await
-        //.map_err(e500)?;
-        .unwrap();
+    let mut transaction = pool.begin().await?;
 
     let subscriber_id = insert_subscriber(&mut transaction, &new_subscriber)
         .await
         .map_err(SubscribeError::InsertSubscriberError)?;
 
     let subscription_token = generate_subscription_token();
-    store_token(&mut transaction, subscriber_id, &subscription_token)
-        .await
-        //.map_err(e500)?;
-        .unwrap();
+    store_token(&mut transaction, subscriber_id, &subscription_token).await?;
 
     send_confirmation_email(
         &email_client,
@@ -67,15 +51,8 @@ pub async fn subscribe(
     .await
     .map_err(SubscribeError::SendConfirmationEmailError)?;
 
-    transaction
-        .commit()
-        .await
-        //.map_err(e500)?;
-        .unwrap();
+    transaction.commit().await?;
 
-    // FlashMessage::info("Thank you for subscribing to our newsletter. \
-    //     To confirm your subscription and start receiving newsletters, check your email and click the link we've sent you.".to_string()).send();
-    // Ok(see_other("/"))
     Ok(HttpResponse::new(StatusCode::OK))
 }
 
@@ -97,7 +74,7 @@ async fn store_token(
     transaction: &mut Transaction<'_, Postgres>,
     subscriber_id: Uuid,
     subscription_token: &str,
-) -> Result<(), StoreTokenError> {
+) -> Result<(), sqlx::Error> {
     let query = sqlx::query!(
         r#"INSERT INTO subscription_tokens (subscription_token, subscriber_id)
         VALUES ($1, $2)"#,
@@ -105,7 +82,7 @@ async fn store_token(
         subscriber_id,
     );
 
-    transaction.execute(query).await.map_err(StoreTokenError)?;
+    transaction.execute(query).await?;
 
     Ok(())
 }
@@ -193,7 +170,6 @@ impl SubscribeError {
             SubscribeError::BadFormData(_) => HttpResponse::BadRequest(),
             SubscribeError::InsertSubscriberError(_) => HttpResponse::BadRequest(),
             SubscribeError::SendConfirmationEmailError(_) => HttpResponse::InternalServerError(),
-            //SubscribeError::UnexpectedError(_) => HttpResponse::InternalServerError(),
         }
     }
     fn error_id(&self) -> &str {
@@ -201,7 +177,6 @@ impl SubscribeError {
             SubscribeError::BadFormData(_) => "invalid_data",
             SubscribeError::InsertSubscriberError(_) => "insert_subscriber",
             SubscribeError::SendConfirmationEmailError(_) => "send_confirmation_email",
-            //SubscribeError::UnexpectedError(_) => "internal_error",
         }
     }
 }
@@ -217,28 +192,5 @@ impl ResponseError for SubscribeError {
         self.response_builder().json(serde_json::json!({
             "error_id": self.error_id()
         }))
-    }
-}
-
-pub struct StoreTokenError(sqlx::Error);
-
-impl std::fmt::Debug for StoreTokenError {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        error_chain_fmt(self, f)
-    }
-}
-
-impl std::fmt::Display for StoreTokenError {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(
-            f,
-            "A database error was encountered while trying to store a subscription token."
-        )
-    }
-}
-
-impl std::error::Error for StoreTokenError {
-    fn source(&self) -> Option<&(dyn std::error::Error + 'static)> {
-        Some(&self.0)
     }
 }
