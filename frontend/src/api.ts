@@ -7,3 +7,9 @@ export function addSubscriber(name: string, email: string) {
     },
   })
 }
+
+export function getUsername() {
+  return fetch('/api/admin/user', {
+    method: 'GET',
+  })
+}
