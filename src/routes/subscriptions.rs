@@ -187,6 +187,17 @@ pub enum SubscribeError {
     UnexpectedError(#[from] anyhow::Error),
 }
 
+impl SubscribeError {
+    fn error_id(&self) -> &str {
+        match self {
+            SubscribeError::BadFormData(_) => "bad_subscription_form_data",
+            SubscribeError::InsertSubscriberError(_) => "insert_subscriber",
+            SubscribeError::SendConfirmationEmailError(_) => "send_confirmation_email",
+            SubscribeError::UnexpectedError(_) => "internal_error",
+        }
+    }
+}
+
 impl std::fmt::Debug for SubscribeError {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         error_chain_fmt(self, f)
@@ -197,21 +208,21 @@ impl ResponseError for SubscribeError {
     fn error_response(&self) -> HttpResponse {
         match self {
             SubscribeError::BadFormData(_) => HttpResponse::BadRequest().json(serde_json::json!({
-                "error_id": "bad_subscription_form_data"
+                "error_id": self.error_id()
             })),
             SubscribeError::InsertSubscriberError(_) => {
                 // TODO: Reporting this error could give an attacker information about who is subscribed or not.  Silently eat this error and pretend it succeeded.
                 HttpResponse::BadRequest().json(serde_json::json!({
-                    "error_id": "insert_subscriber"
+                    "error_id": self.error_id()
                 }))
             }
             SubscribeError::SendConfirmationEmailError(_) => HttpResponse::InternalServerError()
                 .json(serde_json::json!({
-                    "error_id": "send_confirmation_email"
+                    "error_id": self.error_id()
                 })),
             SubscribeError::UnexpectedError(_) => {
                 HttpResponse::InternalServerError().json(serde_json::json!({
-                    "error_id": "internal_error"
+                    "error_id": self.error_id()
                 }))
             }
         }
