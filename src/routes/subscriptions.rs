@@ -39,7 +39,8 @@ pub async fn subscribe(
     //         return Ok(see_other("/"));
     //     }
     // };
-    let new_subscriber = form.0.try_into().map_err(SubscribeError::BadFormData)?;
+    let new_subscriber = form.0.try_into();
+    let new_subscriber = new_subscriber.map_err(SubscribeError::BadFormData)?;
 
     let mut transaction = pool
         .begin()
@@ -182,9 +183,8 @@ pub enum SubscribeError {
 
     #[error("Unable to send confirmation email")]
     SendConfirmationEmailError(#[from] reqwest::Error),
-
-    #[error(transparent)]
-    UnexpectedError(#[from] anyhow::Error),
+    // #[error(transparent)]
+    // UnexpectedError(#[from] anyhow::Error),
 }
 
 impl SubscribeError {
@@ -193,7 +193,7 @@ impl SubscribeError {
             SubscribeError::BadFormData(_) => HttpResponse::BadRequest(),
             SubscribeError::InsertSubscriberError(_) => HttpResponse::BadRequest(),
             SubscribeError::SendConfirmationEmailError(_) => HttpResponse::InternalServerError(),
-            SubscribeError::UnexpectedError(_) => HttpResponse::InternalServerError(),
+            //SubscribeError::UnexpectedError(_) => HttpResponse::InternalServerError(),
         }
     }
     fn error_id(&self) -> &str {
@@ -201,7 +201,7 @@ impl SubscribeError {
             SubscribeError::BadFormData(_) => "bad_subscription_form_data",
             SubscribeError::InsertSubscriberError(_) => "insert_subscriber",
             SubscribeError::SendConfirmationEmailError(_) => "send_confirmation_email",
-            SubscribeError::UnexpectedError(_) => "internal_error",
+            //SubscribeError::UnexpectedError(_) => "internal_error",
         }
     }
 }

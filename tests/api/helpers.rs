@@ -343,3 +343,28 @@ pub async fn assert_error_response(
     let error = response.json::<ErrorResponse>().await.unwrap();
     assert_eq!(error.error_id, expected_error_id);
 }
+
+pub async fn assert_error_response_with_description(
+    response: reqwest::Response,
+    expected_status: u16,
+    expected_error_id: &str,
+    description: &str,
+) {
+    let status = response.status().as_u16();
+
+    assert_eq!(
+        status, expected_status,
+        "Test case '{description}': status code {status} did not match expected status code {expected_status}"
+    );
+
+    let error = response.json::<ErrorResponse>().await;
+    let Ok(error) = error else {
+        panic!("Test case '{description}': Response did not include 'error_id' data.");
+    };
+
+    assert_eq!(
+        error.error_id, expected_error_id,
+        "Test case '{description}': error_id '{}' did not match expected error_id '{}'",
+        error.error_id, expected_error_id
+    );
+}

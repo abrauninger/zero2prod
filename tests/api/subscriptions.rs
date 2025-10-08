@@ -1,7 +1,10 @@
 use wiremock::matchers::{method, path};
 use wiremock::{Mock, ResponseTemplate};
 
-use crate::helpers::{assert_error_response, assert_successful_response, spawn_app};
+use crate::helpers::{
+    assert_error_response, assert_error_response_with_description, assert_successful_response,
+    spawn_app,
+};
 
 #[tokio::test]
 async fn subscribe_shows_confirmation_for_valid_form_data() {
@@ -88,11 +91,13 @@ async fn subscribe_shows_error_when_fields_are_present_but_empty() {
         let response = app.post_subscriptions(body).await;
 
         // Assert
-        let response_status = response.status().as_u16();
-        assert_eq!(
-            response_status, 400,
-            "Error case returned {response_status} instead of 400: '{description}'"
-        );
+        assert_error_response_with_description(
+            response,
+            400,
+            "bad_subscription_form_data",
+            description,
+        )
+        .await;
     }
 }
 
@@ -116,16 +121,19 @@ async fn subscribe_returns_a_400_when_data_is_missing() {
         (serde_json::json!({}), "missing both name and email"),
     ];
 
-    for (invalid_body, error_message) in test_cases {
+    // Act
+    for (body, description) in test_cases {
         // Act
-        let response = app.post_subscriptions(invalid_body).await;
+        let response = app.post_subscriptions(body).await;
 
         // Assert
-        assert_eq!(
+        assert_error_response_with_description(
+            response,
             400,
-            response.status().as_u16(),
-            "The API did not fail with 400 Bad Request when the payload was {error_message}."
-        );
+            "bad_subscription_form_data",
+            description,
+        )
+        .await;
     }
 }
 

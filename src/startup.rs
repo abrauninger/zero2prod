@@ -7,6 +7,7 @@ use crate::routes::{
 };
 use actix_session::SessionMiddleware;
 use actix_session::storage::RedisSessionStore;
+use actix_web::HttpResponse;
 use actix_web::cookie::Key;
 use actix_web::middleware::from_fn;
 use actix_web::{
@@ -107,6 +108,15 @@ async fn run(
                     .build(),
             )
             .wrap(TracingLogger::default())
+            .app_data(web::JsonConfig::default().error_handler(|err, req| {
+                actix_web::error::InternalError::from_response(
+                    "",
+                    // TODO: Better error_id
+                    HttpResponse::BadRequest()
+                        .json(serde_json::json!({ "error_id": "bad_subscription_form_data" })),
+                )
+                .into()
+            }))
             .route("/", web::get().to(home))
             .route("/login", web::get().to(login_form))
             .route("/login", web::post().to(login))
@@ -135,4 +145,5 @@ async fn run(
 
 pub struct ApplicationBaseUrl(pub String);
 
+// TODO: Remove?
 pub struct HmacSecret(pub Secret<String>);
