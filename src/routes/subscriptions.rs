@@ -171,7 +171,7 @@ fn generate_subscription_token() -> String {
         .collect()
 }
 
-// TODO: Do we need thiserror?
+// We use thiserror #[error] attributes for better diagnostics in internal logging.
 #[derive(thiserror::Error)]
 pub enum SubscribeError {
     #[error("Invalid form data: '{0}'")]
