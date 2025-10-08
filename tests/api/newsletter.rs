@@ -243,11 +243,10 @@ async fn create_unconfirmed_subscriber(app: &TestApp) -> ConfirmationLinks {
     // Since we might have multiple subscribers in one test, randomize their metadata to avoid conflicts.
     let name: String = Name().fake();
     let email: String = SafeEmail().fake();
-    let body = serde_urlencoded::to_string(serde_json::json!({
+    let body = serde_json::json!({
         "name": name,
         "email": email,
-    }))
-    .unwrap();
+    });
 
     let _mock_guard = Mock::given(path("/email"))
         .and(method("POST"))

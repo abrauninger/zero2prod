@@ -23,7 +23,10 @@ async fn confirmations_without_token_are_rejected_with_a_400() {
 async fn link_returned_by_subscribe_redirects_successfully_if_called() {
     // Arrange
     let app = spawn_app().await;
-    let body = "name=le%20guin&email=ursula_le_guin%40gmail.com";
+    let body = serde_json::json!({
+        "name": "le guin",
+        "email": "ursula_le_guin@gmail.com",
+    });
 
     Mock::given(path("/email"))
         .and(method("POST"))
@@ -32,7 +35,7 @@ async fn link_returned_by_subscribe_redirects_successfully_if_called() {
         .await;
 
     // Act
-    app.post_subscriptions(body.into()).await;
+    app.post_subscriptions(body).await;
     let email_request = &app.email_server.received_requests().await.unwrap()[0];
     let confirmation_links = app.get_confirmation_links(email_request);
 
@@ -56,7 +59,10 @@ async fn link_returned_by_subscribe_redirects_successfully_if_called() {
 async fn clicking_on_the_confirmation_link_confirms_a_subscriber() {
     // Arrange
     let app = spawn_app().await;
-    let body = "name=le%20guin&email=ursula_le_guin%40gmail.com";
+    let body = serde_json::json!({
+        "name": "le guin",
+        "email": "ursula_le_guin@gmail.com",
+    });
 
     Mock::given(path("/email"))
         .and(method("POST"))
@@ -64,7 +70,7 @@ async fn clicking_on_the_confirmation_link_confirms_a_subscriber() {
         .mount(&app.email_server)
         .await;
 
-    app.post_subscriptions(body.into()).await;
+    app.post_subscriptions(body).await;
     let email_request = &app.email_server.received_requests().await.unwrap()[0];
     let confirmation_links = app.get_confirmation_links(email_request);
 
@@ -90,7 +96,10 @@ async fn clicking_on_the_confirmation_link_confirms_a_subscriber() {
 async fn confirm_returns_500_if_token_is_invalid() {
     // Arrange
     let app = spawn_app().await;
-    let body = "name=le%20guin&email=ursula_le_guin%40gmail.com";
+    let body = serde_json::json!({
+        "name": "le guin",
+        "email": "ursula_le_guin@gmail.com",
+    });
 
     Mock::given(path("/email"))
         .and(method("POST"))
@@ -98,7 +107,7 @@ async fn confirm_returns_500_if_token_is_invalid() {
         .mount(&app.email_server)
         .await;
 
-    app.post_subscriptions(body.into()).await;
+    app.post_subscriptions(body).await;
     let email_request = &app.email_server.received_requests().await.unwrap()[0];
     let confirmation_links = app.get_confirmation_links(email_request);
 

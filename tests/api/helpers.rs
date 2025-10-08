@@ -127,11 +127,10 @@ impl TestApp {
         assert_is_redirect_to(&response, "/admin/dashboard");
     }
 
-    pub async fn post_subscriptions(&self, body: String) -> reqwest::Response {
+    pub async fn post_subscriptions(&self, body: serde_json::Value) -> reqwest::Response {
         self.api_client
             .post(format!("{}/subscriptions", &self.address))
-            .header("Content-Type", "application/x-www-form-urlencoded")
-            .body(body)
+            .json(&body)
             .send()
             .await
             .expect("Failed to execute request")
