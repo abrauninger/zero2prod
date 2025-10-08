@@ -1,5 +1,5 @@
 use actix_web::http::StatusCode;
-use actix_web::{HttpResponse, ResponseError, web};
+use actix_web::{HttpResponse, HttpResponseBuilder, ResponseError, web};
 use chrono::Utc;
 use rand::distributions::Alphanumeric;
 use rand::{Rng, thread_rng};
@@ -188,6 +188,14 @@ pub enum SubscribeError {
 }
 
 impl SubscribeError {
+    fn response_builder(&self) -> HttpResponseBuilder {
+        match self {
+            SubscribeError::BadFormData(_) => HttpResponse::BadRequest(),
+            SubscribeError::InsertSubscriberError(_) => HttpResponse::BadRequest(),
+            SubscribeError::SendConfirmationEmailError(_) => HttpResponse::InternalServerError(),
+            SubscribeError::UnexpectedError(_) => HttpResponse::InternalServerError(),
+        }
+    }
     fn error_id(&self) -> &str {
         match self {
             SubscribeError::BadFormData(_) => "bad_subscription_form_data",
@@ -206,26 +214,9 @@ impl std::fmt::Debug for SubscribeError {
 
 impl ResponseError for SubscribeError {
     fn error_response(&self) -> HttpResponse {
-        match self {
-            SubscribeError::BadFormData(_) => HttpResponse::BadRequest().json(serde_json::json!({
-                "error_id": self.error_id()
-            })),
-            SubscribeError::InsertSubscriberError(_) => {
-                // TODO: Reporting this error could give an attacker information about who is subscribed or not.  Silently eat this error and pretend it succeeded.
-                HttpResponse::BadRequest().json(serde_json::json!({
-                    "error_id": self.error_id()
-                }))
-            }
-            SubscribeError::SendConfirmationEmailError(_) => HttpResponse::InternalServerError()
-                .json(serde_json::json!({
-                    "error_id": self.error_id()
-                })),
-            SubscribeError::UnexpectedError(_) => {
-                HttpResponse::InternalServerError().json(serde_json::json!({
-                    "error_id": self.error_id()
-                }))
-            }
-        }
+        self.response_builder().json(serde_json::json!({
+            "error_id": self.error_id()
+        }))
     }
 }
 
