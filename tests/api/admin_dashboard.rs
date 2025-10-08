@@ -1,4 +1,21 @@
-use crate::helpers::{assert_is_redirect_to, spawn_app};
+use crate::helpers::{assert_error_response, assert_is_redirect_to, spawn_app};
+
+#[tokio::test]
+async fn username_without_login_returns_403() {
+    // Arrange
+    let app = spawn_app().await;
+
+    // Act
+    let response = app.get_username().await;
+
+    // Assert
+    assert_error_response(response, 403, "not_logged_in").await;
+}
+
+// #[derive(serde::Deserialize)]
+// struct Username {
+//     username: String,
+// }
 
 #[tokio::test]
 async fn you_must_be_logged_in_to_access_the_admin_dashboard() {

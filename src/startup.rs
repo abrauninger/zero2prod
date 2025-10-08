@@ -3,7 +3,7 @@ use crate::configuration::{DatabaseSettings, Settings};
 use crate::email_client::EmailClient;
 use crate::routes::{
     admin_dashboard, change_password, change_password_form, confirm, health_check, log_out, login,
-    login_form, publish_newsletter, publish_newsletter_form, subscribe,
+    login_form, publish_newsletter, publish_newsletter_form, subscribe, user_metadata,
 };
 use actix_session::SessionMiddleware;
 use actix_session::storage::RedisSessionStore;
@@ -117,6 +117,7 @@ async fn run(
             .service(
                 web::scope("/admin")
                     .wrap(from_fn(reject_anonymous_users))
+                    .route("/user", web::get().to(user_metadata))
                     .route("/dashboard", web::get().to(admin_dashboard))
                     .route("/password", web::get().to(change_password_form))
                     .route("/password", web::post().to(change_password))

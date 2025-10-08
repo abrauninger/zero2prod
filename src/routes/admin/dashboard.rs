@@ -6,6 +6,15 @@ use uuid::Uuid;
 use crate::authentication::UserId;
 use crate::utils::e500;
 
+pub async fn user_metadata(pool: web::Data<PgPool>, user_id: web::ReqData<UserId>) -> HttpResponse {
+    let user_id = user_id.into_inner();
+    // TODO: No unwrap
+    let username = get_username(*user_id, &pool).await.map_err(e500).unwrap();
+    HttpResponse::Ok().json(serde_json::json!({
+        "username": username
+    }))
+}
+
 pub async fn admin_dashboard(
     pool: web::Data<PgPool>,
     user_id: web::ReqData<UserId>,
