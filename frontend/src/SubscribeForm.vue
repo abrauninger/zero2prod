@@ -89,25 +89,3 @@ function error_message(error_id: string): string {
   return 'Submission failed'
 }
 </script>
-
-<style scoped>
-.error-message {
-  color: darkred;
-  background-color: pink;
-  border-style: solid;
-  border-width: 1px;
-  border-color: darkred;
-  margin-top: 10px;
-  padding: 10px;
-}
-
-.info-message {
-  color: darkgreen;
-  background-color: lightgreen;
-  border-style: solid;
-  border-width: 1px;
-  border-color: darkgreen;
-  margin-top: 10px;
-  padding: 10px;
-}
-</style>
