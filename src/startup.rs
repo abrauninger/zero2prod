@@ -108,15 +108,7 @@ async fn run(
                     .build(),
             )
             .wrap(TracingLogger::default())
-            .app_data(web::JsonConfig::default().error_handler(|err, _| {
-                actix_web::error::InternalError::from_response(
-                    err,
-                    // TODO: Better error_id
-                    HttpResponse::BadRequest()
-                        .json(serde_json::json!({ "error_id": "bad_subscription_form_data" })),
-                )
-                .into()
-            }))
+            .app_data(json_config())
             .route("/", web::get().to(home))
             .route("/login", web::get().to(login_form))
             .route("/login", web::post().to(login))
@@ -141,6 +133,18 @@ async fn run(
     .run();
 
     Ok(server)
+}
+
+fn json_config() -> web::JsonConfig {
+    web::JsonConfig::default().error_handler(|err, _| {
+        actix_web::error::InternalError::from_response(
+            err,
+            // TODO: Better error_id
+            HttpResponse::BadRequest()
+                .json(serde_json::json!({ "error_id": "bad_subscription_form_data" })),
+        )
+        .into()
+    })
 }
 
 pub struct ApplicationBaseUrl(pub String);
