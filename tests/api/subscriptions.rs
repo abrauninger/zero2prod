@@ -197,3 +197,31 @@ async fn subscribe_fails_if_there_is_a_fatal_database_error() {
     // Assert
     assert_error_response(response, 500, "internal").await;
 }
+
+#[tokio::test]
+async fn subscribe_fails_for_duplicate_subscribers() {
+    // Arrange
+    let app = spawn_app().await;
+    let body = serde_json::json!({
+        "name": "le guin",
+        "email": "ursula_le_guin@gmail.com",
+    });
+
+    Mock::given(path("/email"))
+        .and(method("POST"))
+        .respond_with(ResponseTemplate::new(200))
+        // We are not setting an expectation here; this test is focused on another aspect of the ap pbehavior.
+        //.expect(1)
+        .mount(&app.email_server)
+        .await;
+
+    // Act
+    let response = app.post_subscriptions(body.clone()).await;
+    assert_successful_response(&response);
+
+    let response = app.post_subscriptions(body).await;
+
+    // Assert
+    // TODO: This shouldn't be an internal server error. Probably should just be a successful response?
+    assert_error_response(response, 500, "internal").await;
+}
