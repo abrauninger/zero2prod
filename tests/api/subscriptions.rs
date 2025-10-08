@@ -232,3 +232,45 @@ async fn subscribe_succeeds_silently_for_duplicate_subscribers() {
 
     assert_eq!(saved_subscribers.len(), 1);
 }
+
+#[tokio::test]
+async fn subscribe_succeeds_silently_for_subscribers_with_different_names_but_same_email() {
+    // Arrange
+    let app = spawn_app().await;
+    let body1 = serde_json::json!({
+        "name": "le guin",
+        "email": "ursula_le_guin@gmail.com",
+    });
+    let body2 = serde_json::json!({
+        "name": "ursula",
+        "email": "ursula_le_guin@gmail.com",
+    });
+
+    Mock::given(path("/email"))
+        .and(method("POST"))
+        .respond_with(ResponseTemplate::new(200))
+        // We are not setting an expectation here; this test is focused on another aspect of the ap pbehavior.
+        //.expect(1)
+        .mount(&app.email_server)
+        .await;
+
+    // Act
+    let response = app.post_subscriptions(body1).await;
+    assert_successful_response(&response);
+
+    let response = app.post_subscriptions(body2).await;
+
+    // Assert
+    assert_successful_response(&response);
+
+    // There should be only one subscriber
+    let saved_subscribers = sqlx::query!("SELECT email, name, status FROM subscriptions")
+        .fetch_all(&app.db_pool)
+        .await
+        .expect("Failed to fetch saved subscriptions");
+
+    assert_eq!(saved_subscribers.len(), 1);
+
+    // First subscriber should win
+    assert_eq!(saved_subscribers[0].name, "le guin");
+}
