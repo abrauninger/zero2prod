@@ -91,13 +91,7 @@ async fn subscribe_shows_error_when_fields_are_present_but_empty() {
         let response = app.post_subscriptions(body).await;
 
         // Assert
-        assert_error_response_with_description(
-            response,
-            400,
-            "bad_subscription_form_data",
-            description,
-        )
-        .await;
+        assert_error_response_with_description(response, 400, "invalid_data", description).await;
     }
 }
 
@@ -127,13 +121,7 @@ async fn subscribe_returns_a_400_when_data_is_missing() {
         let response = app.post_subscriptions(body).await;
 
         // Assert
-        assert_error_response_with_description(
-            response,
-            400,
-            "bad_subscription_form_data",
-            description,
-        )
-        .await;
+        assert_error_response_with_description(response, 400, "invalid_data", description).await;
     }
 }
 

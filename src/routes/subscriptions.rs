@@ -198,7 +198,7 @@ impl SubscribeError {
     }
     fn error_id(&self) -> &str {
         match self {
-            SubscribeError::BadFormData(_) => "bad_subscription_form_data",
+            SubscribeError::BadFormData(_) => "invalid_data",
             SubscribeError::InsertSubscriberError(_) => "insert_subscriber",
             SubscribeError::SendConfirmationEmailError(_) => "send_confirmation_email",
             //SubscribeError::UnexpectedError(_) => "internal_error",
