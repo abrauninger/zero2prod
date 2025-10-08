@@ -10,7 +10,9 @@ use wiremock::{
     matchers::{any, method, path},
 };
 
-use crate::helpers::{ConfirmationLinks, TestApp, assert_is_redirect_to, spawn_app};
+use crate::helpers::{
+    ConfirmationLinks, TestApp, assert_error_response, assert_is_redirect_to, spawn_app,
+};
 
 #[tokio::test]
 async fn you_must_be_logged_in_to_see_the_send_newsletter_form() {
@@ -21,7 +23,7 @@ async fn you_must_be_logged_in_to_see_the_send_newsletter_form() {
     let response = app.get_newsletters().await;
 
     // Assert
-    assert_is_redirect_to(&response, "/login");
+    assert_error_response(response, 401, "not_logged_in").await;
 }
 
 #[tokio::test]

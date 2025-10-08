@@ -1,18 +1,14 @@
 use std::ops::Deref;
 
 use actix_web::{
-    FromRequest, HttpMessage,
-    body::MessageBody,
+    FromRequest, HttpMessage, HttpResponse,
+    body::BoxBody,
     dev::{ServiceRequest, ServiceResponse},
-    error::InternalError,
     middleware::Next,
 };
 use uuid::Uuid;
 
-use crate::{
-    session_state::TypedSession,
-    utils::{e500, see_other},
-};
+use crate::{session_state::TypedSession, utils::e500};
 
 #[derive(Clone)]
 pub struct UserId(Uuid);
@@ -33,8 +29,8 @@ impl Deref for UserId {
 
 pub async fn reject_anonymous_users(
     mut req: ServiceRequest,
-    next: Next<impl MessageBody>,
-) -> Result<ServiceResponse<impl MessageBody>, actix_web::Error> {
+    next: Next<BoxBody>,
+) -> Result<ServiceResponse<BoxBody>, actix_web::Error> {
     let session = {
         let (http_request, payload) = req.parts_mut();
         TypedSession::from_request(http_request, payload).await
@@ -46,9 +42,11 @@ pub async fn reject_anonymous_users(
             next.call(req).await
         }
         None => {
-            let response = see_other("/login");
-            let e = anyhow::anyhow!("The user has not logged in");
-            Err(InternalError::from_response(e, response).into())
+            let (request, _payload) = req.into_parts();
+            let response = HttpResponse::Unauthorized()
+                .json(serde_json::json!({ "error_id": "not_logged_in" }))
+                .map_into_boxed_body();
+            Ok(ServiceResponse::new(request, response))
         }
     }
 }
