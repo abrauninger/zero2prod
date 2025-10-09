@@ -1,6 +1,11 @@
 <template>
   <h1>This is the admin dashboard</h1>
   <p>You are logged in as: {{ username }}</p>
+  <p>Available actions:</p>
+  <ol>
+    <li><RouterLink to="/admin/newsletters">Send a newsletter issue</RouterLink></li>
+    <!-- <li><RouterLink to="/admin/password">Change password</RouterLink></li> -->
+  </ol>
   <button @click="logout">Log out</button>
 </template>
 

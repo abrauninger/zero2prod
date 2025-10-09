@@ -1,5 +1,3 @@
-<script setup lang="ts"></script>
-
 <template>
   <h1>Welcome to our newsletter</h1>
   <form @submit.prevent="handleSubmit">

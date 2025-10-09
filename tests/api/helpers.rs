@@ -132,7 +132,7 @@ impl TestApp {
     ) -> reqwest::Response {
         self.api_client
             .post(format!("{}/admin/newsletters", &self.address))
-            .form(&body)
+            .json(&body)
             .send()
             .await
             .expect("Failed to execute request")

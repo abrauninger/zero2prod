@@ -27,7 +27,7 @@ pub struct PublishNewsletterFormData {
 
 #[tracing::instrument(name = "Publish newsletter", skip(form, pool, user_id))]
 pub async fn publish_newsletter(
-    form: web::Form<PublishNewsletterFormData>,
+    form: web::Json<PublishNewsletterFormData>,
     pool: web::Data<PgPool>,
     user_id: web::ReqData<UserId>,
 ) -> Result<HttpResponse, actix_web::Error> {
