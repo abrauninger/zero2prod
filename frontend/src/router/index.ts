@@ -3,7 +3,7 @@ import { createRouter, createWebHistory } from 'vue-router'
 import SubscribeForm from '../SubscribeForm.vue'
 import LoginForm from '../LoginForm.vue'
 import AdminDashboard from '../AdminDashboard.vue'
-import SendNewsLetterForm from '../SendNewsletter.vue'
+import SendNewsLetterForm from '../SendNewsletterForm.vue'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
