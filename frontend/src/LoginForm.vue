@@ -25,58 +25,23 @@
   </form>
 </template>
 
-<script lang="ts">
+<script setup lang="ts">
+import { ref } from 'vue'
 import { login } from './api.ts'
+import type { Ref } from 'vue'
+import { useRouter } from 'vue-router'
 
-export default {
-  data() {
-    return {
-      username: '',
-      password: '',
-      errorMessage: null as string | null,
-      infoMessage: null as string | null,
-    }
-  },
-  methods: {
-    async handleSubmit() {
-      this.errorMessage = null
-      this.infoMessage = null
+const username = ref('')
+const password = ref('')
+const errorMessage: Ref<string | null> = ref(null)
+const infoMessage: Ref<string | null> = ref(null)
 
-      try {
-        const response = await login(this.username, this.password)
+const router = useRouter()
 
-        console.log('Response received!')
-
-        if (!response.ok) {
-          const responseContent = await response.json()
-          console.log(responseContent)
-          this.errorMessage = error_message(responseContent.error_id)
-        } else {
-          // TODO: Route back to whatever the user originally tried
-          this.$router.push('/admin')
-        }
-      } catch (error: unknown) {
-        if (error instanceof Error) {
-          this.errorMessage =
-            'An internal front-end error has occured. Apologies for the inconvenience.'
-        }
-        console.error('Error during submission: ', error)
-      }
-    },
-  },
-}
-
-function error_message(error_id: string): string {
-  switch (error_id) {
-    case 'invalid_credentials': {
-      return 'The username and password that you entered did not work. Try again with different credentials.'
-    }
-    case 'internal_error': {
-      return 'An internal error occurred, and we were unable to log you in. Apologies for the inconvenience.'
-    }
+const handleSubmit = async () => {
+  if (await login(username.value, password.value, { error: errorMessage, info: infoMessage })) {
+    // TODO: Route back to whatever the user originally tried
+    router.push('/admin')
   }
-
-  console.log(`Unrecognized error ID: ${error_id}`)
-  return 'Submission failed'
 }
 </script>

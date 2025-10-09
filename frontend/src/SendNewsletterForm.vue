@@ -56,50 +56,9 @@ const infoMessage: Ref<string | null> = ref(null)
 const idempotency_key = uuidv4()
 
 const handleSubmit = async () => {
-  errorMessage.value = null
-  infoMessage.value = null
-
-  try {
-    const response = await publishNewsletter(
-      title.value,
-      content_text.value,
-      content_html.value,
-      idempotency_key,
-    )
-
-    console.log('Response received!')
-
-    if (!response.ok) {
-      const responseContent = await response.json()
-      console.log(responseContent)
-      errorMessage.value = error_message(responseContent.error_id)
-    } else {
-      infoMessage.value =
-        'Your newsletter publish request has been accepted, and emails will go out shortly.'
-    }
-  } catch (error: unknown) {
-    if (error instanceof Error) {
-      errorMessage.value =
-        'An internal front-end error has occured. Apologies for the inconvenience.'
-    }
-    console.error('Error during submission: ', error)
-  }
-}
-
-function error_message(error_id: string): string {
-  switch (error_id) {
-    case 'invalid_data': {
-      return 'There was a problem with the form data you entered. Please try again.'
-    }
-    case 'send_confirmation_email': {
-      return 'We were unable to send a confirmation email to that email address.'
-    }
-    case 'internal_error': {
-      return 'An internal error occurred, and we were unable to add you to our subscription list. Apologies for the inconvenience.'
-    }
-  }
-
-  console.log(`Unrecognized error ID: ${error_id}`)
-  return 'Submission failed'
+  publishNewsletter(title.value, content_text.value, content_html.value, idempotency_key, {
+    error: errorMessage,
+    info: infoMessage,
+  })
 }
 </script>

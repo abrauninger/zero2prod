@@ -35,45 +35,6 @@ const errorMessage: Ref<string | null> = ref(null)
 const infoMessage: Ref<string | null> = ref(null)
 
 const handleSubmit = async () => {
-  errorMessage.value = null
-  infoMessage.value = null
-
-  try {
-    const response = await addSubscriber(name.value, email.value)
-
-    console.log('Response received!')
-
-    if (!response.ok) {
-      const responseContent = await response.json()
-      console.log(responseContent)
-      errorMessage.value = error_message(responseContent.error_id)
-    } else {
-      infoMessage.value =
-        "You have subscribed to our newsletter. Stay tuned, you're going to love it!"
-    }
-  } catch (error: unknown) {
-    if (error instanceof Error) {
-      errorMessage.value =
-        'An internal front-end error has occured. Apologies for the inconvenience.'
-    }
-    console.error('Error during submission: ', error)
-  }
-}
-
-function error_message(error_id: string): string {
-  switch (error_id) {
-    case 'invalid_data': {
-      return 'There was a problem with the form data you entered. Please try again.'
-    }
-    case 'send_confirmation_email': {
-      return 'We were unable to send a confirmation email to that email address.'
-    }
-    case 'internal_error': {
-      return 'An internal error occurred, and we were unable to add you to our subscription list. Apologies for the inconvenience.'
-    }
-  }
-
-  console.log(`Unrecognized error ID: ${error_id}`)
-  return 'Submission failed'
+  addSubscriber(name.value, email.value, { error: errorMessage, info: infoMessage })
 }
 </script>
