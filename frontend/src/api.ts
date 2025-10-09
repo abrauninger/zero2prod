@@ -121,6 +121,13 @@ function errorMessage(errorId: string): string {
     case 'send_confirmation_email': {
       return 'We were unable to send a confirmation email to that email address.'
     }
+    case 'password_check_failed': {
+      return 'The new passwords you entered do not match each other.'
+    }
+    case 'new_password_too_short': {
+      // TODO: Get the character-count from the error response.
+      return 'The new password you have chosen is too short. Your new password must be at least 12 characters long.'
+    }
     case 'internal_error': {
       return 'An internal error occurred, and we were unable to add you to our subscription list. Apologies for the inconvenience.'
     }
