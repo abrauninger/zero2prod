@@ -25,6 +25,7 @@ pub struct PublishNewsletterFormData {
     idempotency_key: String,
 }
 
+// TODO: Update for newer error-message reporting, and no redirect
 #[tracing::instrument(name = "Publish newsletter", skip(form, pool, user_id))]
 pub async fn publish_newsletter(
     form: web::Json<PublishNewsletterFormData>,
