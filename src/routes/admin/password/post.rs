@@ -17,7 +17,7 @@ pub struct ChangePasswordFormData {
 }
 
 pub async fn change_password(
-    form: web::Form<ChangePasswordFormData>,
+    form: web::Json<ChangePasswordFormData>,
     pool: web::Data<PgPool>,
     user_id: web::ReqData<UserId>,
 ) -> Result<HttpResponse, actix_web::Error> {

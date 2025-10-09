@@ -7,23 +7,18 @@
     </div>
 
     <div>
-      <label for="name">Plain-text content:</label>
+      <label for="contentText">Plain-text content:</label>
       <input
         type="text"
-        id="content_text"
-        v-model="content_text"
+        id="contentText"
+        v-model="contentText"
         placeholder="Enter plain-text content"
       />
     </div>
 
     <div>
-      <label for="name">HTML content:</label>
-      <input
-        type="text"
-        id="content_html"
-        v-model="content_html"
-        placeholder="Enter HTML content"
-      />
+      <label for="contentHtml">HTML content:</label>
+      <input type="text" id="contentHtml" v-model="contentHtml" placeholder="Enter HTML content" />
     </div>
 
     <div>
@@ -48,15 +43,16 @@ import { v4 as uuidv4 } from 'uuid'
 import { publishNewsletter } from './api.ts'
 
 const title = ref('')
-const content_text = ref('')
-const content_html = ref('')
+const contentText = ref('')
+const contentHtml = ref('')
 const errorMessage: Ref<string | null> = ref(null)
 const infoMessage: Ref<string | null> = ref(null)
 
 const idempotency_key = uuidv4()
 
 const handleSubmit = async () => {
-  publishNewsletter(title.value, content_text.value, content_html.value, idempotency_key, {
+  // TODO: Handle 401 'unauthorized' in case user navigates directly to this form
+  publishNewsletter(title.value, contentText.value, contentHtml.value, idempotency_key, {
     error: errorMessage,
     info: infoMessage,
   })

@@ -32,21 +32,40 @@ export function addSubscriber(name: string, email: string, messages: Messages) {
 
 export function publishNewsletter(
   title: string,
-  content_text: string,
-  content_html: string,
-  idempotency_key: string,
+  contentText: string,
+  contentHtml: string,
+  idempotencyKey: string,
   messages: Messages,
 ) {
   return fetchWithPost(
     '/api/admin/newsletters',
     {
       title,
-      content_text,
-      content_html,
-      idempotency_key,
+      content_text: contentText,
+      content_html: contentHtml,
+      idempotency_key: idempotencyKey,
     },
     messages,
     'Your newsletter publish request has been accepted, and emails will go out shortly.',
+  )
+}
+
+export function changePassword(
+  currentPassword: string,
+  newPassword: string,
+  newPasswordCheck: string,
+  messages: Messages,
+) {
+  // TODO: Verify the two new password match on the client side without sending to the API.
+  return fetchWithPost(
+    '/api/admin/password',
+    {
+      current_password: currentPassword,
+      new_password: newPassword,
+      new_password_check: newPasswordCheck,
+    },
+    messages,
+    'Your password has been changed.',
   )
 }
 

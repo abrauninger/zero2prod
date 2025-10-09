@@ -7,7 +7,7 @@
     </div>
 
     <div>
-      <label for="name">Email address:</label>
+      <label for="email">Email address:</label>
       <input type="text" id="email" v-model="email" placeholder="Enter your email address" />
     </div>
 

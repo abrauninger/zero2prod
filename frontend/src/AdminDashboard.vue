@@ -6,7 +6,7 @@
   <p>Available actions:</p>
   <ol>
     <li><RouterLink to="/admin/newsletters">Send a newsletter issue</RouterLink></li>
-    <!-- <li><RouterLink to="/admin/password">Change password</RouterLink></li> -->
+    <li><RouterLink to="/admin/password">Change password</RouterLink></li>
   </ol>
   <button @click="logout">Log out</button>
 </template>
