@@ -47,7 +47,6 @@ import { v4 as uuidv4 } from 'uuid'
 
 import { publishNewsletter } from './api.ts'
 
-// TODO: Use 'null' instead of empty string?
 const title = ref('')
 const content_text = ref('')
 const content_html = ref('')

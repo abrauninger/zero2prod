@@ -5,13 +5,7 @@ export function getUsername() {
 }
 
 export function login(username: string, password: string) {
-  return fetch('/api/login', {
-    method: 'POST',
-    body: JSON.stringify({ username, password }),
-    headers: {
-      'Content-Type': 'application/json',
-    },
-  })
+  return fetchWithPost('/api/login', { username, password })
 }
 
 export function logout() {
@@ -21,13 +15,7 @@ export function logout() {
 }
 
 export function addSubscriber(name: string, email: string) {
-  return fetch('/api/subscriptions', {
-    method: 'POST',
-    body: JSON.stringify({ name, email }),
-    headers: {
-      'Content-Type': 'application/json',
-    },
-  })
+  return fetchWithPost('/api/subscriptions', { name, email })
 }
 
 export function publishNewsletter(
@@ -36,9 +24,18 @@ export function publishNewsletter(
   content_html: string,
   idempotency_key: string,
 ) {
-  return fetch('/api/admin/newsletters', {
+  return fetchWithPost('/api/admin/newsletters', {
+    title,
+    content_text,
+    content_html,
+    idempotency_key,
+  })
+}
+
+function fetchWithPost(url: string, body: object) {
+  return fetch(url, {
     method: 'POST',
-    body: JSON.stringify({ title, content_text, content_html, idempotency_key }),
+    body: JSON.stringify(body),
     headers: {
       'Content-Type': 'application/json',
     },
