@@ -146,6 +146,7 @@ impl ResponseError for PublishError {
             PublishError::UnexpectedError(_) => {
                 HttpResponse::new(StatusCode::INTERNAL_SERVER_ERROR)
             }
+            // TODO: Do we still need AuthError?
             PublishError::AuthError(_) => {
                 let mut response = HttpResponse::new(StatusCode::UNAUTHORIZED);
                 let header_value = HeaderValue::from_str(r#"Basic realm="publish""#).unwrap();

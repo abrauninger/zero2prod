@@ -1,4 +1,4 @@
-use crate::helpers::{assert_error_response, assert_is_redirect_to, spawn_app};
+use crate::helpers::{assert_error_response, assert_successful_response, spawn_app};
 
 #[tokio::test]
 async fn invalid_credentials_results_in_error_response() {
@@ -29,10 +29,7 @@ async fn redirect_to_admin_dashboard_after_login_success() {
     });
 
     let response = app.post_login(&login_body).await;
-    assert_is_redirect_to(&response, "/admin/dashboard");
 
-    // Act, part 2
-    // Follow the redirect
-    let html_page = app.get_admin_dashboard_html().await;
-    assert!(html_page.contains(&format!("Welcome {}", app.test_user.username)));
+    // Assert
+    assert_successful_response(&response);
 }

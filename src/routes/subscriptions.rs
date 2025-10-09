@@ -182,7 +182,8 @@ pub enum SubscribeError {
     #[error("Invalid form data: '{0}'")]
     BadFormData(String),
 
-    #[error("Unable to insert subscriber")]
+    // TODO: Call this 'UnexpectedError' and use 'anyhow::Error' as 'from'?
+    #[error("Database error")]
     DatabaseError(#[from] sqlx::Error),
 
     #[error("Unable to send confirmation email")]

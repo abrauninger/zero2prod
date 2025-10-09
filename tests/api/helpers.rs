@@ -102,7 +102,7 @@ impl TestApp {
             "password": &self.test_user.password,
         });
         let response = self.post_login(&login_body).await;
-        assert_is_redirect_to(&response, "/admin/dashboard");
+        assert_successful_response(&response);
     }
 
     pub async fn post_subscriptions(&self, body: serde_json::Value) -> reqwest::Response {
@@ -171,18 +171,6 @@ impl TestApp {
 
     pub async fn get_admin_dashboard_html(&self) -> String {
         self.get_admin_dashboard().await.text().await.unwrap()
-    }
-
-    pub async fn get_change_password(&self) -> reqwest::Response {
-        self.api_client
-            .get(format!("{}/admin/password", &self.address))
-            .send()
-            .await
-            .expect("Failed to execute request")
-    }
-
-    pub async fn get_change_password_html(&self) -> String {
-        self.get_change_password().await.text().await.unwrap()
     }
 
     pub async fn post_change_password<Body: serde::Serialize>(

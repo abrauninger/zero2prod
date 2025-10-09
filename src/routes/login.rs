@@ -1,4 +1,4 @@
-use actix_web::{HttpResponse, HttpResponseBuilder, ResponseError, http::header::LOCATION, web};
+use actix_web::{HttpResponse, HttpResponseBuilder, ResponseError, web};
 use secrecy::Secret;
 use sqlx::PgPool;
 
@@ -36,9 +36,7 @@ pub async fn login(
                 .insert_user_id(user_id)
                 .map_err(|e| LoginError::UnexpectedError(e.into()))?;
 
-            Ok(HttpResponse::SeeOther()
-                .insert_header((LOCATION, "/admin/dashboard"))
-                .finish())
+            Ok(HttpResponse::Ok().finish())
         }
         Err(e) => match e {
             AuthError::InvalidCredentials(_) => Err(LoginError::AuthError(e.into())),
