@@ -1,6 +1,8 @@
 <template>
   <h1>This is the admin dashboard</h1>
-  <p>You are logged in as: {{ username }}</p>
+  <p>
+    You are logged in as: <strong>{{ username }}</strong>
+  </p>
   <p>Available actions:</p>
   <ol>
     <li><RouterLink to="/admin/newsletters">Send a newsletter issue</RouterLink></li>
@@ -21,17 +23,15 @@ const router = useRouter()
 watchEffect(async () => {
   const response = await getUsername()
 
-  if (!response.ok) {
-    if (response.status == 401) {
-      router.replace('/login')
-    } else {
-      // TODO: Temp
-      username.value = "Couldn't get it!"
-    }
-  } else {
+  if (response.ok) {
     const responseContent = await response.json()
     console.log(responseContent)
     username.value = responseContent.username
+  } else {
+    if (response.status != 401) {
+      console.log('Unexpected error fetching username')
+    }
+    router.replace('/login')
   }
 })
 
