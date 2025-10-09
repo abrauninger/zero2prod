@@ -25,45 +25,39 @@
   </form>
 </template>
 
-<script lang="ts">
+<script setup lang="ts">
+import { ref, type Ref } from 'vue'
 import { addSubscriber } from './api.ts'
 
-export default {
-  data() {
-    return {
-      name: '',
-      email: '',
-      errorMessage: null as string | null,
-      infoMessage: null as string | null,
+const name = ref('')
+const email = ref('')
+const errorMessage: Ref<string | null> = ref(null)
+const infoMessage: Ref<string | null> = ref(null)
+
+const handleSubmit = async () => {
+  errorMessage.value = null
+  infoMessage.value = null
+
+  try {
+    const response = await addSubscriber(name.value, email.value)
+
+    console.log('Response received!')
+
+    if (!response.ok) {
+      const responseContent = await response.json()
+      console.log(responseContent)
+      errorMessage.value = error_message(responseContent.error_id)
+    } else {
+      infoMessage.value =
+        "You have subscribed to our newsletter. Stay tuned, you're going to love it!"
     }
-  },
-  methods: {
-    async handleSubmit() {
-      this.errorMessage = null
-      this.infoMessage = null
-
-      try {
-        const response = await addSubscriber(this.name, this.email)
-
-        console.log('Response received!')
-
-        if (!response.ok) {
-          const responseContent = await response.json()
-          console.log(responseContent)
-          this.errorMessage = error_message(responseContent.error_id)
-        } else {
-          this.infoMessage =
-            "You have subscribed to our newsletter. Stay tuned, you're going to love it!"
-        }
-      } catch (error: unknown) {
-        if (error instanceof Error) {
-          this.errorMessage =
-            'An internal front-end error has occured. Apologies for the inconvenience.'
-        }
-        console.error('Error during submission: ', error)
-      }
-    },
-  },
+  } catch (error: unknown) {
+    if (error instanceof Error) {
+      errorMessage.value =
+        'An internal front-end error has occured. Apologies for the inconvenience.'
+    }
+    console.error('Error during submission: ', error)
+  }
 }
 
 function error_message(error_id: string): string {
