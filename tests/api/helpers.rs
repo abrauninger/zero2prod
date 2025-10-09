@@ -169,6 +169,7 @@ impl TestApp {
             .expect("Failed to execute request")
     }
 
+    // TODO: Remove
     pub async fn get_admin_dashboard_html(&self) -> String {
         self.get_admin_dashboard().await.text().await.unwrap()
     }
@@ -191,6 +192,19 @@ impl TestApp {
             .send()
             .await
             .expect("Failed to execute request")
+    }
+
+    pub async fn get_index_html(&self) -> String {
+        let response = self
+            .api_client
+            .get(format!("{}/", &self.address))
+            .send()
+            .await
+            .expect("Failed to execute request");
+
+        assert_successful_response(&response);
+
+        response.text().await.unwrap()
     }
 
     pub async fn dispatch_all_pending_emails(&self) {

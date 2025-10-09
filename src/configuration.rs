@@ -113,6 +113,7 @@ pub struct ApplicationSettings {
     pub base_url: String,
     pub cookie_store_key: Secret<String>,
     pub secure_cookies: bool,
+    pub frontend_files_directory: String,
 }
 
 #[derive(Clone, serde::Deserialize)]

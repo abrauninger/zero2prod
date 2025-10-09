@@ -5,6 +5,7 @@ use crate::routes::{
     admin_dashboard, change_password, confirm, health_check, log_out, login, publish_newsletter,
     subscribe, user_metadata,
 };
+use actix_files::Files;
 use actix_session::SessionMiddleware;
 use actix_session::storage::RedisSessionStore;
 use actix_web::HttpResponse;
@@ -53,6 +54,7 @@ impl Application {
             configuration.application.cookie_store_key,
             configuration.redis_uri,
             configuration.application.secure_cookies,
+            configuration.application.frontend_files_directory,
         )
         .await
         .expect("Failed to run server");
@@ -77,6 +79,7 @@ pub fn get_connection_pool(configuration: &DatabaseSettings) -> PgPool {
     name = "Run server",
     skip(listener, db_pool, email_client, cookie_store_key, redis_uri)
 )]
+#[allow(clippy::too_many_arguments)]
 async fn run(
     listener: TcpListener,
     db_pool: PgPool,
@@ -85,6 +88,7 @@ async fn run(
     cookie_store_key: Secret<String>,
     redis_uri: Secret<String>,
     secure_cookies: bool,
+    frontend_files_directory: String,
 ) -> Result<Server, anyhow::Error> {
     // Wrap the pool in a smart pointer
     let db_pool = Data::new(db_pool);
@@ -109,6 +113,7 @@ async fn run(
             )
             .wrap(TracingLogger::default())
             .app_data(json_config())
+            // Backend
             .route("/login", web::post().to(login))
             .route("/health_check", web::get().to(health_check))
             .route("/subscriptions", web::post().to(subscribe))
@@ -125,6 +130,8 @@ async fn run(
             .app_data(db_pool.clone())
             .app_data(email_client.clone())
             .app_data(base_url.clone())
+            // Frontend
+            .service(Files::new("/", &frontend_files_directory).index_file("index.html"))
     })
     .listen(listener)?
     .run();
