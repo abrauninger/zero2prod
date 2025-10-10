@@ -1,4 +1,4 @@
-use actix_web::{HttpResponse, HttpResponseBuilder, ResponseError, web};
+use actix_web::{HttpResponse, web};
 use anyhow::Context;
 use sqlx::{Executor, PgPool, Postgres, Transaction};
 use uuid::Uuid;
@@ -6,7 +6,7 @@ use uuid::Uuid;
 use crate::{
     authentication::UserId,
     idempotency::{IdempotencyKey, NextAction, save_response, try_processing},
-    utils::error_chain_fmt,
+    utils::AppError,
 };
 
 #[derive(serde::Deserialize)]
@@ -22,7 +22,7 @@ pub async fn publish_newsletter(
     form: web::Json<PublishNewsletterData>,
     pool: web::Data<PgPool>,
     user_id: web::ReqData<UserId>,
-) -> Result<HttpResponse, PublishError> {
+) -> Result<HttpResponse, AppError> {
     let PublishNewsletterData {
         title,
         content_text,
@@ -99,38 +99,4 @@ async fn enqueue_delivery_tasks(
     );
     transaction.execute(query).await?;
     Ok(())
-}
-
-#[derive(thiserror::Error)]
-pub enum PublishError {
-    #[error(transparent)]
-    UnexpectedError(#[from] anyhow::Error),
-}
-
-impl PublishError {
-    fn response_builder(&self) -> HttpResponseBuilder {
-        match self {
-            PublishError::UnexpectedError(_) => HttpResponse::InternalServerError(),
-        }
-    }
-    fn error_id(&self) -> &str {
-        match self {
-            PublishError::UnexpectedError(_) => "internal_error",
-        }
-    }
-}
-
-impl std::fmt::Debug for PublishError {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        error_chain_fmt(self, f)
-    }
-}
-
-// TODO: De-dupe with SubscribeError etc.
-impl ResponseError for PublishError {
-    fn error_response(&self) -> HttpResponse {
-        self.response_builder().json(serde_json::json!({
-            "error_id": self.error_id()
-        }))
-    }
 }
