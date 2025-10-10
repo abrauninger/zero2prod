@@ -8,7 +8,7 @@ use actix_web::{
 };
 use uuid::Uuid;
 
-use crate::{session_state::TypedSession, utils::e500};
+use crate::session_state::TypedSession;
 
 #[derive(Clone)]
 pub struct UserId(Uuid);
@@ -36,7 +36,10 @@ pub async fn reject_anonymous_users(
         TypedSession::from_request(http_request, payload).await
     }?;
 
-    match session.get_user_id().map_err(e500)? {
+    match session
+        .get_user_id()
+        .map_err(actix_web::error::ErrorInternalServerError)?
+    {
         Some(user_id) => {
             req.extensions_mut().insert(UserId(user_id));
             next.call(req).await
