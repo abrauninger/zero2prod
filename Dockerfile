@@ -50,7 +50,4 @@ COPY --from=frontend /app/dist dist
 
 COPY configuration configuration
 
-ENV APP_ENVIRONMENT production
-# TODO: Specify 'ENV RUST_BACKTRACE full'
-
 ENTRYPOINT ["./zero2prod"]

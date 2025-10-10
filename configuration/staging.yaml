@@ -1,0 +1,13 @@
+application:
+  host: 0.0.0.0
+  base_url: "http://localhost"
+  port: 8000
+  cookie_store_key: "long-and-very-secret-random-key-needed-to-verify-cookie-integrity"
+  secure_cookies: false
+  frontend_files_directory: "./dist"
+database:
+  require_ssl: false
+email_client:
+  base_url: "https://api.postmarkapp.com"
+  sender_email: "andy@andybrauninger.com"
+  timeout_milliseconds: 10000
