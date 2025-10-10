@@ -22,7 +22,7 @@
     </div>
 
     <div>
-      <button type="submit">Subscribe</button>
+      <button type="submit">Publish</button>
     </div>
 
     <div v-if="errorMessage" class="error-message">

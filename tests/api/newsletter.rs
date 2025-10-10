@@ -11,7 +11,7 @@ use wiremock::{
 };
 
 use crate::helpers::{
-    ConfirmationLinks, TestApp, assert_error_response, assert_is_redirect_to, spawn_app,
+    ConfirmationLinks, TestApp, assert_error_response, assert_successful_response, spawn_app,
 };
 
 #[tokio::test]
@@ -59,7 +59,7 @@ async fn newsletters_are_not_delivered_to_unconfirmed_subscribers() {
     let response = app.post_publish_newsletter(&newsletter_request_body).await;
 
     // Assert
-    assert_is_redirect_to(&response, "/admin/newsletters");
+    assert_successful_response(&response);
 
     app.dispatch_all_pending_emails().await;
 
@@ -91,7 +91,7 @@ async fn newsletters_are_delivered_to_confirmed_subscribers() {
     let response = app.post_publish_newsletter(&newsletter_request_body).await;
 
     // Assert
-    assert_is_redirect_to(&response, "/admin/newsletters");
+    assert_successful_response(&response);
 
     app.dispatch_all_pending_emails().await;
 
@@ -151,7 +151,7 @@ async fn publish_newsletter_form_works() {
     let response = app.post_publish_newsletter(&newsletter_request_body).await;
 
     // Assert
-    assert_is_redirect_to(&response, "/admin/newsletters");
+    assert_successful_response(&response);
 }
 
 #[tokio::test]
@@ -177,11 +177,11 @@ async fn newsletter_creation_is_idempotent() {
     });
 
     let response = app.post_publish_newsletter(&newsletter_request_body).await;
-    assert_is_redirect_to(&response, "/admin/newsletters");
+    assert_successful_response(&response);
 
     // Act - Part 2 - Submit newsletter form *again*
     let response = app.post_publish_newsletter(&newsletter_request_body).await;
-    assert_is_redirect_to(&response, "/admin/newsletters");
+    assert_successful_response(&response);
 
     app.dispatch_all_pending_emails().await;
 
