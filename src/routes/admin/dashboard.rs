@@ -4,15 +4,17 @@ use sqlx::PgPool;
 use uuid::Uuid;
 
 use crate::authentication::UserId;
-use crate::utils::e500;
+use crate::utils::AppError;
 
-pub async fn user_metadata(pool: web::Data<PgPool>, user_id: web::ReqData<UserId>) -> HttpResponse {
+pub async fn user_metadata(
+    pool: web::Data<PgPool>,
+    user_id: web::ReqData<UserId>,
+) -> Result<HttpResponse, AppError> {
     let user_id = user_id.into_inner();
-    // TODO: No unwrap
-    let username = get_username(*user_id, &pool).await.map_err(e500).unwrap();
-    HttpResponse::Ok().json(serde_json::json!({
+    let username = get_username(*user_id, &pool).await?;
+    Ok(HttpResponse::Ok().json(serde_json::json!({
         "username": username
-    }))
+    })))
 }
 
 #[tracing::instrument(name = "Get username", skip(pool))]
