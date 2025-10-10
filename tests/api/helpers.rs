@@ -89,7 +89,7 @@ pub struct TestApp {
 impl TestApp {
     pub async fn post_login<Body: serde::Serialize>(&self, body: &Body) -> reqwest::Response {
         self.api_client
-            .post(format!("{}/login", &self.address))
+            .post(format!("{}/api/login", &self.address))
             .json(body)
             .send()
             .await
@@ -107,7 +107,7 @@ impl TestApp {
 
     pub async fn post_subscriptions(&self, body: serde_json::Value) -> reqwest::Response {
         self.api_client
-            .post(format!("{}/subscriptions", &self.address))
+            .post(format!("{}/api/subscriptions", &self.address))
             .json(&body)
             .send()
             .await
@@ -119,7 +119,7 @@ impl TestApp {
         body: &Body,
     ) -> reqwest::Response {
         self.api_client
-            .post(format!("{}/admin/newsletters", &self.address))
+            .post(format!("{}/api/admin/newsletters", &self.address))
             .json(&body)
             .send()
             .await
@@ -155,7 +155,7 @@ impl TestApp {
 
     pub async fn get_username(&self) -> reqwest::Response {
         self.api_client
-            .get(format!("{}/admin/user", &self.address))
+            .get(format!("{}/api/admin/user", &self.address))
             .send()
             .await
             .expect("Failed to execute request")
@@ -163,7 +163,7 @@ impl TestApp {
 
     pub async fn get_admin_dashboard(&self) -> reqwest::Response {
         self.api_client
-            .get(format!("{}/admin/dashboard", &self.address))
+            .get(format!("{}/api/admin/dashboard", &self.address))
             .send()
             .await
             .expect("Failed to execute request")
@@ -179,7 +179,7 @@ impl TestApp {
         body: &Body,
     ) -> reqwest::Response {
         self.api_client
-            .post(format!("{}/admin/password", &self.address))
+            .post(format!("{}/api/admin/password", &self.address))
             .json(body)
             .send()
             .await
@@ -188,7 +188,7 @@ impl TestApp {
 
     pub async fn get_logout(&self) -> reqwest::Response {
         self.api_client
-            .get(format!("{}/admin/logout", &self.address))
+            .get(format!("{}/api/admin/logout", &self.address))
             .send()
             .await
             .expect("Failed to execute request")
