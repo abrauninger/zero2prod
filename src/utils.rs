@@ -36,9 +36,17 @@ pub fn error_chain_fmt(
     Ok(())
 }
 
-/// A simple wrapper around anyhow::Error that implements ResponseError to return the `error_id`.
 #[derive(thiserror::Error)]
 pub enum AppError {
+    #[error("Invalid form data: '{0}'")]
+    BadInputData(String),
+
+    #[error("Database error")]
+    DatabaseError(#[from] sqlx::Error),
+
+    #[error("Unable to send confirmation email")]
+    SendConfirmationEmailError(#[from] reqwest::Error),
+
     #[error(transparent)]
     UnexpectedError(#[from] anyhow::Error),
 }
@@ -46,11 +54,17 @@ pub enum AppError {
 impl AppError {
     fn response_builder(&self) -> HttpResponseBuilder {
         match self {
+            AppError::BadInputData(_) => HttpResponse::BadRequest(),
+            AppError::DatabaseError(_) => HttpResponse::InternalServerError(),
+            AppError::SendConfirmationEmailError(_) => HttpResponse::InternalServerError(),
             AppError::UnexpectedError(_) => HttpResponse::InternalServerError(),
         }
     }
     fn error_id(&self) -> &str {
         match self {
+            AppError::BadInputData(_) => "invalid_data",
+            AppError::DatabaseError(_) => "internal",
+            AppError::SendConfirmationEmailError(_) => "send_confirmation_email",
             AppError::UnexpectedError(_) => "internal_error",
         }
     }

@@ -1,5 +1,5 @@
 use actix_web::http::StatusCode;
-use actix_web::{HttpResponse, HttpResponseBuilder, ResponseError, web};
+use actix_web::{HttpResponse, web};
 use chrono::Utc;
 use rand::distributions::Alphanumeric;
 use rand::{Rng, thread_rng};
@@ -9,7 +9,7 @@ use uuid::Uuid;
 use crate::domain::{NewSubscriber, SubscriberEmail, SubscriberName};
 use crate::email_client::EmailClient;
 use crate::startup::ApplicationBaseUrl;
-use crate::utils::error_chain_fmt;
+use crate::utils::AppError;
 
 #[derive(serde::Deserialize)]
 pub struct SubscribeFormData {
@@ -30,8 +30,8 @@ pub async fn subscribe(
     pool: web::Data<PgPool>,
     email_client: web::Data<EmailClient>,
     base_url: web::Data<ApplicationBaseUrl>,
-) -> Result<HttpResponse, SubscribeError> {
-    let new_subscriber = form.0.try_into().map_err(SubscribeError::BadFormData)?;
+) -> Result<HttpResponse, AppError> {
+    let new_subscriber = form.0.try_into().map_err(AppError::BadInputData)?;
 
     // TODO: Should we check within the context of a transaction in order to get transaction isolation?
     // TODO: What if multiple 'subscribe' requests come in simultaneously for the same user?
@@ -43,7 +43,7 @@ pub async fn subscribe(
 
     let subscriber_id = insert_subscriber(&mut transaction, &new_subscriber)
         .await
-        .map_err(SubscribeError::DatabaseError)?;
+        .map_err(AppError::DatabaseError)?;
 
     let subscription_token = generate_subscription_token();
     store_token(&mut transaction, subscriber_id, &subscription_token).await?;
@@ -55,7 +55,7 @@ pub async fn subscribe(
         &subscription_token,
     )
     .await
-    .map_err(SubscribeError::SendConfirmationEmailError)?;
+    .map_err(AppError::SendConfirmationEmailError)?;
 
     transaction.commit().await?;
 
@@ -174,49 +174,4 @@ fn generate_subscription_token() -> String {
         .map(char::from)
         .take(25)
         .collect()
-}
-
-// We use thiserror #[error] attributes for better diagnostics in internal logging.
-#[derive(thiserror::Error)]
-pub enum SubscribeError {
-    #[error("Invalid form data: '{0}'")]
-    BadFormData(String),
-
-    // TODO: Call this 'UnexpectedError' and use 'anyhow::Error' as 'from'?
-    #[error("Database error")]
-    DatabaseError(#[from] sqlx::Error),
-
-    #[error("Unable to send confirmation email")]
-    SendConfirmationEmailError(#[from] reqwest::Error),
-}
-
-impl SubscribeError {
-    fn response_builder(&self) -> HttpResponseBuilder {
-        match self {
-            SubscribeError::BadFormData(_) => HttpResponse::BadRequest(),
-            SubscribeError::DatabaseError(_) => HttpResponse::InternalServerError(),
-            SubscribeError::SendConfirmationEmailError(_) => HttpResponse::InternalServerError(),
-        }
-    }
-    fn error_id(&self) -> &str {
-        match self {
-            SubscribeError::BadFormData(_) => "invalid_data",
-            SubscribeError::DatabaseError(_) => "internal",
-            SubscribeError::SendConfirmationEmailError(_) => "send_confirmation_email",
-        }
-    }
-}
-
-impl std::fmt::Debug for SubscribeError {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        error_chain_fmt(self, f)
-    }
-}
-
-impl ResponseError for SubscribeError {
-    fn error_response(&self) -> HttpResponse {
-        self.response_builder().json(serde_json::json!({
-            "error_id": self.error_id()
-        }))
-    }
 }

@@ -3,7 +3,7 @@ use actix_web_flash_messages::FlashMessage;
 use sqlx::PgPool;
 use uuid::Uuid;
 
-use crate::utils::e500;
+use crate::utils::AppError;
 
 #[derive(serde::Deserialize)]
 pub struct Parameters {
@@ -14,18 +14,14 @@ pub struct Parameters {
 pub async fn confirm(
     parameters: web::Query<Parameters>,
     pool: web::Data<PgPool>,
-) -> Result<HttpResponse, actix_web::Error> {
-    let id = get_subscriber_id_from_token(&pool, &parameters.subscription_token)
-        .await
-        .map_err(e500)?;
+) -> Result<HttpResponse, AppError> {
+    let id = get_subscriber_id_from_token(&pool, &parameters.subscription_token).await?;
 
     let Some(subscriber_id) = id else {
-        return Err(e500(anyhow::anyhow!("Invalid subscriber token")));
+        return Err(anyhow::anyhow!("Invalid subscriber token").into());
     };
 
-    confirm_subscriber(&pool, subscriber_id)
-        .await
-        .map_err(e500)?;
+    confirm_subscriber(&pool, subscriber_id).await?;
 
     FlashMessage::info(
         "You have confirmed your newsletter subscription. Stay tuned for exciting newsletters!",
