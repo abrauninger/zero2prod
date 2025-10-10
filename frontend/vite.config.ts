@@ -11,10 +11,8 @@ export default defineConfig({
   server: {
     proxy: {
       '/api': {
-        // TODO: Use the correct backend URL for production etc.
         target: 'http://localhost:8000',
         changeOrigin: true,
-        rewrite: (path) => path.replace(/^\/api/, ''),
       },
     },
   },
