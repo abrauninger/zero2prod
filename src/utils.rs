@@ -1,19 +1,4 @@
-use actix_web::{HttpResponse, HttpResponseBuilder, ResponseError, http::header::LOCATION};
-
-/// Return a 400 with the user representation of the validation error as the body.
-/// The error root cause is preserved for logging purposes.
-pub fn e400<T>(e: T) -> actix_web::Error
-where
-    T: std::fmt::Debug + std::fmt::Display + 'static,
-{
-    actix_web::error::ErrorBadRequest(e)
-}
-
-pub fn see_other(location: &str) -> HttpResponse {
-    HttpResponse::SeeOther()
-        .insert_header((LOCATION, location))
-        .finish()
-}
+use actix_web::{HttpResponse, HttpResponseBuilder, ResponseError};
 
 pub fn error_chain_fmt(
     e: &impl std::error::Error,
