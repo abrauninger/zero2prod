@@ -1,6 +1,18 @@
 <template>
-  <RouterLink to="/" class="nav-bar">Home</RouterLink>
-  <RouterLink to="/admin" class="nav-bar">Admin dashboard</RouterLink>
+  <nav class="relative bg-gray-200">
+    <div class="flex space-x-4">
+      <RouterLink
+        to="/"
+        class="rounded-md px-3 py-2 text-sm font-medium bg-gray-300 text-black hover:bg-gray-400 hover:text-red-600"
+        >Home</RouterLink
+      >
+      <RouterLink
+        to="/admin"
+        class="rounded-md px-3 py-2 text-sm font-medium bg-gray-300 text-black hover:bg-gray-400 hover:text-red-600"
+        >Admin dashboard</RouterLink
+      >
+    </div>
+  </nav>
   <div>
     <RouterView />
   </div>
