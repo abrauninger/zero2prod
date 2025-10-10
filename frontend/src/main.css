@@ -1,3 +1,32 @@
+body {
+  font-family: sans-serif;
+}
+
+a.nav-bar {
+  margin: 8px;
+}
+
+label {
+  margin: 8px;
+}
+
+button {
+  margin: 8px;
+  margin-top: 20px;
+  padding: 6px;
+  font-size: 18px;
+}
+
+input {
+  margin: 8px;
+  font-size: 14px;
+  padding: 4px;
+}
+
+h1 {
+  margin-left: 6px;
+}
+
 .error-message {
   color: darkred;
   background-color: pink;
