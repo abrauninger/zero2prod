@@ -169,11 +169,6 @@ impl TestApp {
             .expect("Failed to execute request")
     }
 
-    // TODO: Remove
-    pub async fn get_admin_dashboard_html(&self) -> String {
-        self.get_admin_dashboard().await.text().await.unwrap()
-    }
-
     pub async fn post_change_password<Body: serde::Serialize>(
         &self,
         body: &Body,

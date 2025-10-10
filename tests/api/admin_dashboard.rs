@@ -36,15 +36,15 @@ async fn logout_clears_session_state() {
 
     app.login().await;
 
-    // Act - Part 1 - Follow the redirect from login
-    let html_page = app.get_admin_dashboard_html().await;
-    assert!(html_page.contains(&format!("Welcome {}", app.test_user.username)));
+    // Act - Part 1 - Get username
+    let response = app.get_username().await;
+    assert_successful_response(&response);
 
     // Act - Part 2 - Logout
     let response = app.get_logout().await;
     assert_successful_response(&response);
 
-    // Act - Part 3 - Attempt to load admin panel
-    let response = app.get_admin_dashboard().await;
+    // Act - Part 3 - Attempt to get username
+    let response = app.get_username().await;
     assert_error_response(response, 401, "not_logged_in").await;
 }
