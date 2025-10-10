@@ -8,6 +8,8 @@ a.nav-bar {
 
 label {
   margin: 8px;
+  margin-bottom: 0;
+  display: block;
 }
 
 button {
@@ -19,6 +21,7 @@ button {
 
 input {
   margin: 8px;
+  margin-bottom: 16px;
   font-size: 14px;
   padding: 4px;
 }
