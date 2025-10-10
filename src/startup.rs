@@ -114,18 +114,21 @@ async fn run(
             .wrap(TracingLogger::default())
             .app_data(json_config())
             // Backend
-            .route("/login", web::post().to(login))
-            .route("/health_check", web::get().to(health_check))
-            .route("/subscriptions", web::post().to(subscribe))
-            .route("/subscriptions/confirm", web::get().to(confirm))
             .service(
-                web::scope("/admin")
-                    .wrap(from_fn(reject_anonymous_users))
-                    .route("/user", web::get().to(user_metadata))
-                    .route("/dashboard", web::get().to(admin_dashboard))
-                    .route("/password", web::post().to(change_password))
-                    .route("/newsletters", web::post().to(publish_newsletter))
-                    .route("/logout", web::get().to(log_out)),
+                web::scope("/api")
+                    .route("/login", web::post().to(login))
+                    .route("/health_check", web::get().to(health_check))
+                    .route("/subscriptions", web::post().to(subscribe))
+                    .route("/subscriptions/confirm", web::get().to(confirm))
+                    .service(
+                        web::scope("/admin")
+                            .wrap(from_fn(reject_anonymous_users))
+                            .route("/user", web::get().to(user_metadata))
+                            .route("/dashboard", web::get().to(admin_dashboard))
+                            .route("/password", web::post().to(change_password))
+                            .route("/newsletters", web::post().to(publish_newsletter))
+                            .route("/logout", web::get().to(log_out)),
+                    ),
             )
             .app_data(db_pool.clone())
             .app_data(email_client.clone())
