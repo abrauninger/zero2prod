@@ -1,5 +1,5 @@
 <template>
-  <div class="mx-auto max-w-xl py-12">
+  <div class="mx-auto max-w-xl py-12 px-6">
     <AppHeading>{{ heading }}</AppHeading>
     <form @submit.prevent="$emit('submit')">
       <div class="grid grid-cols-1 gap-6 mt-8">

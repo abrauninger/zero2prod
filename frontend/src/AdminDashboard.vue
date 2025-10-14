@@ -1,5 +1,5 @@
 <template>
-  <div class="mx-auto max-w-xl py-12">
+  <div class="mx-auto max-w-xl py-12 px-12">
     <AppHeading>This is the admin dashboard</AppHeading>
     <div class="mt-8">
       <p class="mb-4">
