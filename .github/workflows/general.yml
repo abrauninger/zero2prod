@@ -70,6 +70,18 @@ jobs:
           --no-default-features
           --locked
 
+      - name: Install Node
+        uses: actions/setup-node@v6
+
+      - name: Install frontend dependencies
+        uses: npm install
+
+      - name: Type-check frontend
+        uses: npm run type-check
+
+      - name: Build frontend
+        uses: npm run build
+
       - name: Create app user in Postgres
         run: |
           sudo apt-get install postgresql-client
@@ -86,7 +98,7 @@ jobs:
         run: SKIP_DOCKER=true ./scripts/init_db.sh
 
       - name: Run tests
-        run: cargo test
+        run: RUST_BACKTRACE=full cargo test
 
       - name: Check that queries are fresh
         run: cargo sqlx prepare --workspace --check -- --all-targets
@@ -169,7 +181,7 @@ jobs:
       - name: Install cargo-llvm-cov
         uses: taiki-e/install-action@cargo-llvm-cov
       - name: Generate code coverage
-        run: cargo llvm-cov --all-features --workspace --lcov --output-path lcov.info
+        run: RUST_BACKTRACE=full cargo llvm-cov --all-features --workspace --lcov --output-path lcov.info
       - name: Generate report
         run: cargo llvm-cov report --html --output-dir coverage
       - uses: actions/upload-artifact@v4
