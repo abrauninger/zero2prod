@@ -1,19 +1,20 @@
 <template>
-  <h1>Log in</h1>
-  <form @submit.prevent="handleSubmit">
-    <div>
-      <label for="username">Username:</label>
-      <input type="text" id="username" v-model="username" placeholder="Enter your username" />
-    </div>
+  <AppForm heading="Log in" @submit="handleSubmit">
+    <FormTextField
+      v-model="username"
+      id="username"
+      label="Username"
+      placeholder="Enter your username"
+    />
+    <FormTextField
+      v-model="password"
+      type="password"
+      id="password"
+      label="Password"
+      placeholder="Enter your password"
+    />
 
-    <div>
-      <label for="passwrd">Password:</label>
-      <input type="password" id="password" v-model="password" placeholder="Enter your password" />
-    </div>
-
-    <div>
-      <button type="submit">Log in</button>
-    </div>
+    <SubmitButton label="Log in" />
 
     <div v-if="errorMessage" class="error-message">
       {{ errorMessage }}
@@ -22,7 +23,7 @@
     <div v-if="infoMessage" class="info-message">
       {{ infoMessage }}
     </div>
-  </form>
+  </AppForm>
 </template>
 
 <script setup lang="ts">
@@ -30,6 +31,10 @@ import { ref } from 'vue'
 import { login } from './api.ts'
 import type { Ref } from 'vue'
 import { useRouter } from 'vue-router'
+
+import AppForm from './AppForm.vue'
+import FormTextField from './FormTextField.vue'
+import SubmitButton from './SubmitButton.vue'
 
 const username = ref('')
 const password = ref('')

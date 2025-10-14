@@ -2,7 +2,7 @@
   <div>
     <label v-bind:for="id" class="text-gray-700">{{ label }}</label>
     <input
-      type="text"
+      v-bind:type="type"
       v-model="model"
       v-bind:id="id"
       v-bind:placeholder="placeholder"
@@ -24,6 +24,10 @@ defineProps({
   placeholder: {
     type: String,
     required: true,
+  },
+  type: {
+    type: String,
+    default: 'text',
   },
 })
 const model = defineModel()
