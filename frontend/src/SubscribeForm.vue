@@ -3,27 +3,13 @@
     <h1 class="text-4xl font-bold">Welcome to our newsletter</h1>
     <form @submit.prevent="handleSubmit">
       <div class="grid grid-cols-1 gap-6 mt-8">
-        <div>
-          <label for="name" class="text-gray-700">Name</label>
-          <input
-            type="text"
-            id="name"
-            v-model="name"
-            placeholder="Enter your name"
-            class="rounded mt-1 block w-full"
-          />
-        </div>
-
-        <div>
-          <label for="email" class="text-gray-700">Email address</label>
-          <input
-            type="text"
-            id="email"
-            v-model="email"
-            placeholder="Enter your email address"
-            class="rounded mt-1 block w-full"
-          />
-        </div>
+        <FormTextField v-model="name" id="name" label="Name" placeholder="Enter your name" />
+        <FormTextField
+          v-model="email"
+          id="email"
+          label="Email address"
+          placeholder="Enter your email address"
+        />
 
         <SubmitButton label="Subscribe" />
 
@@ -42,6 +28,7 @@
 <script setup lang="ts">
 import { ref, type Ref } from 'vue'
 import { addSubscriber } from './api.ts'
+import FormTextField from './FormTextField.vue'
 import SubmitButton from './SubmitButton.vue'
 
 const name = ref('')

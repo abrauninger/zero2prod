@@ -79,6 +79,7 @@ async function fetchWithPost(
   messages.info.value = null
 
   console.log(`Fetching POST ${url}`)
+  console.log(body)
 
   try {
     const response = await fetch(url, {
