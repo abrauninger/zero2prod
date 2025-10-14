@@ -11,5 +11,5 @@ async fn index_html_file_served_by_app() {
     dbg!(&response_html);
 
     // Assert
-    assert!(response_html.contains("<body>"));
+    assert!(response_html.contains("<body"));
 }
