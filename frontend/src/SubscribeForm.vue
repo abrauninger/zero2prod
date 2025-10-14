@@ -1,35 +1,30 @@
 <template>
-  <div class="mx-auto max-w-xl py-12">
-    <Heading>Welcome to our newsletter</Heading>
-    <form @submit.prevent="handleSubmit">
-      <div class="grid grid-cols-1 gap-6 mt-8">
-        <FormTextField v-model="name" id="name" label="Name" placeholder="Enter your name" />
-        <FormTextField
-          v-model="email"
-          id="email"
-          label="Email address"
-          placeholder="Enter your email address"
-        />
+  <AppForm heading="Welcome to our newsletter" @submit="handleSubmit">
+    <FormTextField v-model="name" id="name" label="Name" placeholder="Enter your name" />
+    <FormTextField
+      v-model="email"
+      id="email"
+      label="Email address"
+      placeholder="Enter your email address"
+    />
 
-        <SubmitButton label="Subscribe" />
+    <SubmitButton label="Subscribe" />
 
-        <div v-if="errorMessage" class="error-message">
-          {{ errorMessage }}
-        </div>
+    <div v-if="errorMessage" class="error-message">
+      {{ errorMessage }}
+    </div>
 
-        <div v-if="infoMessage" class="info-message">
-          {{ infoMessage }}
-        </div>
-      </div>
-    </form>
-  </div>
+    <div v-if="infoMessage" class="info-message">
+      {{ infoMessage }}
+    </div>
+  </AppForm>
 </template>
 
 <script setup lang="ts">
 import { ref, type Ref } from 'vue'
 import { addSubscriber } from './api.ts'
+import AppForm from './AppForm.vue'
 import FormTextField from './FormTextField.vue'
-import Heading from './Heading.vue'
 import SubmitButton from './SubmitButton.vue'
 
 const name = ref('')
