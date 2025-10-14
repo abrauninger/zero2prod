@@ -25,14 +25,7 @@
           />
         </div>
 
-        <div>
-          <button
-            type="submit"
-            class="text-white bg-blue-700 hover:bg-blue-800 font-medium text-sm rounded-lg px-5 py-2.5 mt-8"
-          >
-            Subscribe
-          </button>
-        </div>
+        <SubmitButton />
 
         <div v-if="errorMessage" class="error-message">
           {{ errorMessage }}
@@ -49,6 +42,7 @@
 <script setup lang="ts">
 import { ref, type Ref } from 'vue'
 import { addSubscriber } from './api.ts'
+import SubmitButton from './SubmitButton.vue'
 
 const name = ref('')
 const email = ref('')
