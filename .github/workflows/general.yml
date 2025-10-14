@@ -74,13 +74,13 @@ jobs:
         uses: actions/setup-node@v6
 
       - name: Install frontend dependencies
-        uses: npm install
+        run: npm install
 
       - name: Type-check frontend
-        uses: npm run type-check
+        run: npm run type-check
 
       - name: Build frontend
-        uses: npm run build
+        run: npm run build
 
       - name: Create app user in Postgres
         run: |
