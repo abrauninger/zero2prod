@@ -1,35 +1,8 @@
 @import 'tailwindcss';
+@plugin "@tailwindcss/forms";
 
 body {
-  font-family: 'Open Sans', sans-serif;
-}
-
-a.nav-bar {
-  margin: 8px;
-}
-
-label {
-  margin: 8px;
-  margin-bottom: 0;
-  display: block;
-}
-
-button {
-  margin: 8px;
-  margin-top: 20px;
-  padding: 6px;
-  font-size: 18px;
-}
-
-input {
-  margin: 8px;
-  margin-bottom: 16px;
-  font-size: 14px;
-  padding: 4px;
-}
-
-h1 {
-  margin-left: 6px;
+  font-family: ui-sans-serif, sytem-ui, sans-serif;
 }
 
 .error-message {

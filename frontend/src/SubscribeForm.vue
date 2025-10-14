@@ -1,28 +1,49 @@
 <template>
-  <h1>Welcome to our newsletter</h1>
-  <form @submit.prevent="handleSubmit">
-    <div>
-      <label for="name">Name:</label>
-      <input type="text" id="name" v-model="name" placeholder="Enter your name" />
-    </div>
+  <div class="mx-auto max-w-xl py-12">
+    <h1 class="text-4xl font-bold">Welcome to our newsletter</h1>
+    <form @submit.prevent="handleSubmit">
+      <div class="grid grid-cols-1 gap-6 mt-8">
+        <div>
+          <label for="name" class="text-gray-700">Name</label>
+          <input
+            type="text"
+            id="name"
+            v-model="name"
+            placeholder="Enter your name"
+            class="rounded mt-1 block w-full"
+          />
+        </div>
 
-    <div>
-      <label for="email">Email address:</label>
-      <input type="text" id="email" v-model="email" placeholder="Enter your email address" />
-    </div>
+        <div>
+          <label for="email" class="text-gray-700">Email address</label>
+          <input
+            type="text"
+            id="email"
+            v-model="email"
+            placeholder="Enter your email address"
+            class="rounded mt-1 block w-full"
+          />
+        </div>
 
-    <div>
-      <button type="submit">Subscribe</button>
-    </div>
+        <div>
+          <button
+            type="submit"
+            class="text-white bg-blue-700 hover:bg-blue-800 font-medium text-sm rounded-lg px-5 py-2.5 mt-8"
+          >
+            Subscribe
+          </button>
+        </div>
 
-    <div v-if="errorMessage" class="error-message">
-      {{ errorMessage }}
-    </div>
+        <div v-if="errorMessage" class="error-message">
+          {{ errorMessage }}
+        </div>
 
-    <div v-if="infoMessage" class="info-message">
-      {{ infoMessage }}
-    </div>
-  </form>
+        <div v-if="infoMessage" class="info-message">
+          {{ infoMessage }}
+        </div>
+      </div>
+    </form>
+  </div>
 </template>
 
 <script setup lang="ts">
