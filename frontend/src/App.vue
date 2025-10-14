@@ -4,7 +4,7 @@
       <RouterLink
         to="/"
         class="rounded-md px-3 py-2 text-sm font-medium bg-gray-300 text-black hover:bg-gray-400 hover:text-blue-800"
-        >Home</RouterLink
+        >Subscribe</RouterLink
       >
       <RouterLink
         to="/admin"
