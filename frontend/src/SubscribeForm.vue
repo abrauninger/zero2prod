@@ -10,13 +10,7 @@
 
     <SubmitButton>Subscribe</SubmitButton>
 
-    <div v-if="errorMessage" class="error-message">
-      {{ errorMessage }}
-    </div>
-
-    <div v-if="infoMessage" class="info-message">
-      {{ infoMessage }}
-    </div>
+    <AppMessages v-bind:error-message="errorMessage" v-bind:info-message="infoMessage" />
   </AppForm>
 </template>
 
@@ -24,6 +18,7 @@
 import { ref, type Ref } from 'vue'
 import { addSubscriber } from './api.ts'
 import AppForm from './AppForm.vue'
+import AppMessages from './AppMessages.vue'
 import FormTextField from './FormTextField.vue'
 import SubmitButton from './SubmitButton.vue'
 

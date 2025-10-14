@@ -16,13 +16,7 @@
 
     <SubmitButton>Publish</SubmitButton>
 
-    <div v-if="errorMessage" class="error-message">
-      {{ errorMessage }}
-    </div>
-
-    <div v-if="infoMessage" class="info-message">
-      {{ infoMessage }}
-    </div>
+    <AppMessages v-bind:error-message="errorMessage" v-bind:info-message="infoMessage" />
   </AppForm>
 </template>
 
@@ -32,6 +26,7 @@ import type { Ref } from 'vue'
 import { v4 as uuidv4 } from 'uuid'
 
 import AppForm from './AppForm.vue'
+import AppMessages from './AppMessages.vue'
 import FormTextField from './FormTextField.vue'
 import SubmitButton from './SubmitButton.vue'
 
