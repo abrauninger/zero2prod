@@ -1,6 +1,6 @@
 <template>
   <div class="mx-auto max-w-xl py-12">
-    <h1 class="text-4xl font-bold">Welcome to our newsletter</h1>
+    <Heading>Welcome to our newsletter</Heading>
     <form @submit.prevent="handleSubmit">
       <div class="grid grid-cols-1 gap-6 mt-8">
         <FormTextField v-model="name" id="name" label="Name" placeholder="Enter your name" />
@@ -29,6 +29,7 @@
 import { ref, type Ref } from 'vue'
 import { addSubscriber } from './api.ts'
 import FormTextField from './FormTextField.vue'
+import Heading from './Heading.vue'
 import SubmitButton from './SubmitButton.vue'
 
 const name = ref('')
