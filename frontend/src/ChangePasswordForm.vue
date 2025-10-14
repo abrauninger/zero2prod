@@ -1,39 +1,28 @@
 <template>
-  <h1>Change password</h1>
-  <form @submit.prevent="handleSubmit">
-    <div>
-      <label for="currentPassword">Current password:</label>
-      <input
-        type="password"
-        id="currentPassword"
-        v-model="currentPassword"
-        placeholder="Enter current password"
-      />
-    </div>
+  <AppForm heading="Change password" @submit="handleSubmit">
+    <FormTextField
+      v-model="currentPassword"
+      id="currentPassword"
+      label="Current password"
+      placeholder="Enter current password"
+      type="password"
+    />
+    <FormTextField
+      v-model="newPassword"
+      id="newPassword"
+      label="Current password"
+      placeholder="Enter new password"
+      type="password"
+    />
+    <FormTextField
+      v-model="newPasswordCheck"
+      id="newPasswordCheck"
+      label="Current password"
+      placeholder="Enter new password"
+      type="password"
+    />
 
-    <div>
-      <label for="newPassword">New password:</label>
-      <input
-        type="password"
-        id="newPassword"
-        v-model="newPassword"
-        placeholder="Enter new password"
-      />
-    </div>
-
-    <div>
-      <label for="newPasswordCheck">Confirm new password:</label>
-      <input
-        type="password"
-        id="newPasswordCheck"
-        v-model="newPasswordCheck"
-        placeholder="Enter the new password again"
-      />
-    </div>
-
-    <div>
-      <button type="submit">Change password</button>
-    </div>
+    <SubmitButton>Change password</SubmitButton>
 
     <div v-if="errorMessage" class="error-message">
       {{ errorMessage }}
@@ -42,7 +31,7 @@
     <div v-if="infoMessage" class="info-message">
       {{ infoMessage }}
     </div>
-  </form>
+  </AppForm>
 </template>
 
 <script setup lang="ts">
@@ -50,6 +39,9 @@ import { ref } from 'vue'
 import type { Ref } from 'vue'
 
 import { changePassword } from './api.ts'
+import AppForm from './AppForm.vue'
+import FormTextField from './FormTextField.vue'
+import SubmitButton from './SubmitButton.vue'
 
 const currentPassword = ref('')
 const newPassword = ref('')
