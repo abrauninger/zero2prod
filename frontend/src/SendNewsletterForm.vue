@@ -1,29 +1,20 @@
 <template>
-  <h1>Publish a new newsletter issue</h1>
-  <form @submit.prevent="handleSubmit">
-    <div>
-      <label for="title">Title:</label>
-      <input type="text" id="title" v-model="title" placeholder="Enter newsletter title" />
-    </div>
+  <AppForm heading="Publish a new newsletter issue" @submit="handleSubmit">
+    <FormTextField v-model="title" id="title" label="Title" placeholder="Enter newsletter title" />
+    <FormTextField
+      v-model="contentText"
+      id="contentText"
+      label="Plain-text content"
+      placeholder="Enter plain-text content"
+    />
+    <FormTextField
+      v-model="contentHtml"
+      id="contentHtml"
+      label="HTML content"
+      placeholder="Enter HTML content"
+    />
 
-    <div>
-      <label for="contentText">Plain-text content:</label>
-      <input
-        type="text"
-        id="contentText"
-        v-model="contentText"
-        placeholder="Enter plain-text content"
-      />
-    </div>
-
-    <div>
-      <label for="contentHtml">HTML content:</label>
-      <input type="text" id="contentHtml" v-model="contentHtml" placeholder="Enter HTML content" />
-    </div>
-
-    <div>
-      <button type="submit">Publish</button>
-    </div>
+    <SubmitButton>Publish</SubmitButton>
 
     <div v-if="errorMessage" class="error-message">
       {{ errorMessage }}
@@ -32,13 +23,17 @@
     <div v-if="infoMessage" class="info-message">
       {{ infoMessage }}
     </div>
-  </form>
+  </AppForm>
 </template>
 
 <script setup lang="ts">
 import { ref } from 'vue'
 import type { Ref } from 'vue'
 import { v4 as uuidv4 } from 'uuid'
+
+import AppForm from './AppForm.vue'
+import FormTextField from './FormTextField.vue'
+import SubmitButton from './SubmitButton.vue'
 
 import { publishNewsletter } from './api.ts'
 
