@@ -25,7 +25,7 @@
           />
         </div>
 
-        <SubmitButton />
+        <SubmitButton label="Subscribe" />
 
         <div v-if="errorMessage" class="error-message">
           {{ errorMessage }}
