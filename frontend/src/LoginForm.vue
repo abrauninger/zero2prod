@@ -14,7 +14,7 @@
       placeholder="Enter your password"
     />
 
-    <SubmitButton label="Log in" />
+    <SubmitButton>Log in</SubmitButton>
 
     <div v-if="errorMessage" class="error-message">
       {{ errorMessage }}

@@ -8,7 +8,7 @@
       placeholder="Enter your email address"
     />
 
-    <SubmitButton label="Subscribe" />
+    <SubmitButton>Subscribe</SubmitButton>
 
     <div v-if="errorMessage" class="error-message">
       {{ errorMessage }}
