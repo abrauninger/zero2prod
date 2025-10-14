@@ -1,6 +1,6 @@
 <template>
   <div class="mx-auto max-w-xl py-12">
-    <Heading>{{ heading }}</Heading>
+    <AppHeading>{{ heading }}</AppHeading>
     <form @submit.prevent="$emit('submit')">
       <div class="grid grid-cols-1 gap-6 mt-8">
         <slot />
@@ -10,7 +10,7 @@
 </template>
 
 <script setup lang="ts">
-import Heading from './Heading.vue'
+import AppHeading from './AppHeading.vue'
 
 defineProps({
   heading: {

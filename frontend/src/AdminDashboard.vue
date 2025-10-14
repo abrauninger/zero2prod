@@ -1,6 +1,6 @@
 <template>
   <div class="mx-auto max-w-xl py-12">
-    <Heading>This is the admin dashboard</Heading>
+    <AppHeading>This is the admin dashboard</AppHeading>
     <div class="mt-8">
       <p class="mb-4">
         You are logged in as: <strong>{{ username }}</strong>
@@ -31,7 +31,7 @@ import { useRouter } from 'vue-router'
 import { getUsername, logout as logoutApi } from './api.ts'
 import type { Ref } from 'vue'
 
-import Heading from './Heading.vue'
+import AppHeading from './AppHeading.vue'
 import AppButton from './AppButton.vue'
 
 const username: Ref<string | null> = ref(null)
