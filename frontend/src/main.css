@@ -1,6 +1,2 @@
 @import 'tailwindcss';
 @plugin "@tailwindcss/forms";
-
-body {
-  font-family: ui-sans-serif, sytem-ui, sans-serif;
-}
