@@ -100,11 +100,16 @@ const selfRequestLogin = async () => {
 
 const generatedBreadcrumbs = () => {
   const breadcrumbs: BreadcrumbItem[] = []
+  breadcrumbs.push({
+    name: 'Home',
+    link: '/',
+  })
+
+  // TODO: Simplify; right now this only enumerates one item.
   route.matched.forEach((route) => {
     if (route.meta && route.meta.breadcrumb) {
       breadcrumbs.push({
         name: route.meta.breadcrumb,
-        link: route.path,
       })
     }
   })

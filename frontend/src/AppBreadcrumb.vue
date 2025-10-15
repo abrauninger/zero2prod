@@ -1,14 +1,14 @@
 <template>
   <nav class="flex" aria-label="Breadcrumb">
-    <ol class="inline-flex items-center space-x-1 md:space-x-3">
+    <ol class="inline-flex items-center">
       <li v-for="(crumb, index) in breadcrumbs" :key="index" class="inline-flex items-center">
-        <RouterLink v-if="crumb.link" :to="crumb.link">
+        <RouterLink v-if="crumb.link" :to="crumb.link" class="px-1">
           {{ crumb.name }}
         </RouterLink>
-        <span v-else>
+        <span v-else class="font-bold px-1">
           {{ crumb.name }}
         </span>
-        <ChevronRightIcon v-if="index < breadcrumbs.length - 1" />
+        <ChevronRightIcon v-if="index < breadcrumbs.length - 1" class="h-5 w-5" />
       </li>
     </ol>
   </nav>
