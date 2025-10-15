@@ -18,12 +18,12 @@
           <div>
             <MenuItems class="absolute right-0 w-52 origin-top-right bg-white rounded-md px-3 py-1">
               <MenuItem class="block">
-                <a class="cursor-default" @click="routerLinkNavigate('/admin/newsletters')"
+                <a class="cursor-default" @click="router.push('/admin/newsletters')"
                   >Send a newsletter issue</a
                 >
               </MenuItem>
               <MenuItem class="block">
-                <a class="cursor-default" @click="routerLinkNavigate('/admin/password')"
+                <a class="cursor-default" @click="router.push('/admin/password')"
                   >Change password</a
                 >
               </MenuItem>
@@ -69,8 +69,6 @@ const selfRequestLogin = async () => {
   router.push('/login')
 }
 
+// Explanation of why we use direct calls to 'router.push' instead of RouterLink:
 // https://stackoverflow.com/a/76857856
-const routerLinkNavigate = (href: string) => {
-  router.push(href)
-}
 </script>
