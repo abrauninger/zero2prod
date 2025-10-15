@@ -10,10 +10,10 @@
       <div v-if="username" class="inline-block">
         <span>Logged in as </span>
 
-        <Menu as="div" class="relative inline-block">
-          <MenuButton class="inline-flex">
-            <strong>{{ username }}</strong
-            ><ChevronDownIcon class="h-5 w-5" aria-hidden="true"
+        <Menu as="div" class="relative inline-block" v-slot="{ open }">
+          <MenuButton :class="[open ? 'bg-gray-400' : '', 'flex rounded-md px-1 py-1 font-bold']">
+            {{ username }}
+            <ChevronDownIcon class="h-5 w-5" aria-hidden="true"
           /></MenuButton>
           <div>
             <MenuItems
