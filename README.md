@@ -11,6 +11,37 @@ This application is designed to be hosted on DigitalOcean App Platform.
 
 To deploy, use `doctl create` with `spec.yaml`.
 
+### Additional environment variables
+To run the application, additional environment variables must be set for the app on App Platform. The following variables must be set with secrets from your own app instance:
+
+```
+APP_REDIS_URI
+APP_DATABASE__DATABASE_NAME
+APP_DATABASE__HOST
+APP_DATABASE__PORT
+APP_DATABASE__USERNAME
+APP_DATABASE__PASSWORD
+```
+
+This variable must be set using your API token from Postmark:
+
+```
+APP_EMAIL_CLIENT__AUTHORIZATION_TOKEN
+```
+
+This variable is recommended:
+
+```
+RUST_BACKTRACE=full
+```
+
+And finally this must be set:
+
+```
+APP_ENVIRONMENT=production
+```
+
+
 ## Screenshots
 
 <img src="./home-page.png">
