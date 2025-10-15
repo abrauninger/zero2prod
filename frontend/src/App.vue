@@ -16,19 +16,38 @@
             ><ChevronDownIcon class="h-5 w-5" aria-hidden="true"
           /></MenuButton>
           <div>
-            <MenuItems class="absolute right-0 w-52 origin-top-right bg-white rounded-md px-3 py-1">
-              <MenuItem class="block">
-                <a class="cursor-default" @click="router.push('/admin/newsletters')"
+            <MenuItems
+              class="absolute right-0 w-56 origin-top-right bg-white rounded-md px-1 py-1 shadow-lg ring-1 ring-black/5 focus:outline-none"
+            >
+              <MenuItem v-slot="{ active }" class="block">
+                <a
+                  @click="router.push('/admin/newsletters')"
+                  :class="[
+                    active ? 'bg-blue-500 text-white' : 'text-gray-900',
+                    'cursor-default px-2 py-2 text-md rounded-md',
+                  ]"
                   >Send a newsletter issue</a
                 >
               </MenuItem>
-              <MenuItem class="block">
-                <a class="cursor-default" @click="router.push('/admin/password')"
+              <MenuItem v-slot="{ active }" class="block">
+                <a
+                  @click="router.push('/admin/password')"
+                  :class="[
+                    active ? 'bg-blue-500 text-white' : 'text-gray-900',
+                    'cursor-default px-2 py-2 text-md rounded-md',
+                  ]"
                   >Change password</a
                 >
               </MenuItem>
-              <MenuItem class="block"
-                ><a @click="logout(router)" class="cursor-default">Log out</a></MenuItem
+              <MenuItem v-slot="{ active }" class="block"
+                ><a
+                  @click="logout(router)"
+                  :class="[
+                    active ? 'bg-blue-500 text-white' : 'text-gray-900',
+                    'cursor-default px-2 py-2 text-md rounded-md',
+                  ]"
+                  >Log out</a
+                ></MenuItem
               >
             </MenuItems>
           </div>
