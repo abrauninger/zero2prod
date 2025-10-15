@@ -16,12 +16,17 @@
             ><ChevronDownIcon class="h-5 w-5" aria-hidden="true"
           /></MenuButton>
           <div>
-            <MenuItems class="absolute right-0 w-48 origin-top-right bg-white rounded-md px-3 py-1">
-              <MenuItem class="block"
-                ><a class="cursor-default" @click="routerLinkNavigate('/admin')"
-                  >Admin dashboard</a
-                ></MenuItem
-              >
+            <MenuItems class="absolute right-0 w-52 origin-top-right bg-white rounded-md px-3 py-1">
+              <MenuItem class="block">
+                <a class="cursor-default" @click="routerLinkNavigate('/admin/newsletters')"
+                  >Send a newsletter issue</a
+                >
+              </MenuItem>
+              <MenuItem class="block">
+                <a class="cursor-default" @click="routerLinkNavigate('/admin/password')"
+                  >Change password</a
+                >
+              </MenuItem>
               <MenuItem class="block"
                 ><a @click="logout" class="cursor-default">Log out</a></MenuItem
               >
