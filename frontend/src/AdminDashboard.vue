@@ -20,40 +20,22 @@
           >
         </li>
       </ol>
-      <AppButton @click="logout">Log out</AppButton>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, watchEffect } from 'vue'
+import { watchEffect } from 'vue'
 import { useRouter } from 'vue-router'
-import { getUsername, logout as logoutApi } from './api.ts'
-import type { Ref } from 'vue'
+import { username } from './state.ts'
 
 import AppHeading from './AppHeading.vue'
-import AppButton from './AppButton.vue'
 
-const username: Ref<string | null> = ref(null)
 const router = useRouter()
 
 watchEffect(async () => {
-  const response = await getUsername()
-
-  if (response.ok) {
-    const responseContent = await response.json()
-    console.log(responseContent)
-    username.value = responseContent.username
-  } else {
-    if (response.status != 401) {
-      console.log('Unexpected error fetching username')
-    }
+  if (username.value === null) {
     router.replace('/login')
   }
 })
-
-async function logout() {
-  await logoutApi()
-  router.replace('/')
-}
 </script>

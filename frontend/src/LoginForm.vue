@@ -22,9 +22,11 @@
 
 <script setup lang="ts">
 import { ref } from 'vue'
-import { login } from './api.ts'
 import type { Ref } from 'vue'
 import { useRouter } from 'vue-router'
+
+import { login } from './api.ts'
+import { fetchUsername, loginSource } from './state.ts'
 
 import AppForm from './AppForm.vue'
 import AppMessages from './AppMessages.vue'
@@ -40,8 +42,10 @@ const router = useRouter()
 
 const handleSubmit = async () => {
   if (await login(username.value, password.value, { error: errorMessage, info: infoMessage })) {
-    // TODO: Route back to whatever the user originally tried
-    router.push('/admin')
+    if (loginSource !== null) {
+      await fetchUsername()
+      router.push(loginSource)
+    }
   }
 }
 </script>
