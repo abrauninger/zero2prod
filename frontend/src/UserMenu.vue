@@ -12,7 +12,14 @@
         {{ username }}
         <ChevronDownIcon class="h-5 w-5" aria-hidden="true"
       /></MenuButton>
-      <div>
+      <transition
+        enter-active-class="transition duration-100 ease-out"
+        enter-from-class="transform scale-95 opacity-0"
+        enter-to-class="transform scale-100 opacity-100"
+        leave-active-class="transition duration-75 ease-in"
+        leave-from-class="transform scale-100 opacity-100"
+        leave-to-class="transform scale-95 opacity-0"
+      >
         <MenuItems
           class="absolute right-0 w-56 origin-top-right bg-white rounded-md px-1 py-1 shadow-lg ring-1 ring-black/5 focus:outline-none"
         >
@@ -32,7 +39,7 @@
             >
           </MenuItem>
         </MenuItems>
-      </div>
+      </transition>
     </Menu>
   </div>
   <div v-else>
