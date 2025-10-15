@@ -28,7 +28,7 @@
                 >
               </MenuItem>
               <MenuItem class="block"
-                ><a @click="logout" class="cursor-default">Log out</a></MenuItem
+                ><a @click="logout(router)" class="cursor-default">Log out</a></MenuItem
               >
             </MenuItems>
           </div>
@@ -55,8 +55,6 @@ import { Menu, MenuButton, MenuItems, MenuItem } from '@headlessui/vue'
 import { ChevronDownIcon } from '@heroicons/vue/20/solid'
 
 import { username, fetchUsername, logout, setLoginSource } from './state.ts'
-
-import AppButton from './AppButton.vue'
 
 const router = useRouter()
 const route = useRoute()
