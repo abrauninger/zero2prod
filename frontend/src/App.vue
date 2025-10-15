@@ -1,75 +1,77 @@
 <template>
-  <div class="flex space-x-4 justify-between px-2 py-2">
-    <AppBreadcrumb :breadcrumbs="generatedBreadcrumbs()" />
-    <div v-if="username">
-      <span class="text-gray-500">Logged in as </span>
+  <nav>
+    <div class="flex space-x-4 justify-between px-2 py-2 bg-gray-200">
+      <AppBreadcrumb :breadcrumbs="generatedBreadcrumbs()" />
+      <div v-if="username">
+        <span class="text-gray-500">Logged in as </span>
 
-      <Menu as="div" class="relative inline-block" v-slot="{ open }">
-        <MenuButton
-          :class="[
-            open ? 'bg-gray-400' : '',
-            'flex rounded-md px-1 py-1 font-bold hover:bg-gray-400',
-          ]"
-        >
-          {{ username }}
-          <ChevronDownIcon class="h-5 w-5" aria-hidden="true"
-        /></MenuButton>
-        <div>
-          <MenuItems
-            class="absolute right-0 w-56 origin-top-right bg-white rounded-md px-1 py-1 shadow-lg ring-1 ring-black/5 focus:outline-none"
+        <Menu as="div" class="relative inline-block" v-slot="{ open }">
+          <MenuButton
+            :class="[
+              open ? 'bg-gray-400' : '',
+              'flex rounded-md px-1 py-1 font-bold hover:bg-gray-400',
+            ]"
           >
-            <MenuItem v-slot="{ active }" class="block">
-              <a
-                @click="router.push('/')"
-                :class="[
-                  active ? 'bg-blue-500 text-white' : 'text-gray-900',
-                  'cursor-default px-2 py-2 text-md rounded-md',
-                ]"
-                >Subscribe to newsletter</a
-              >
-            </MenuItem>
-            <MenuItem v-slot="{ active }" class="block">
-              <a
-                @click="router.push('/admin/newsletters')"
-                :class="[
-                  active ? 'bg-blue-500 text-white' : 'text-gray-900',
-                  'cursor-default px-2 py-2 text-md rounded-md',
-                ]"
-                >Send a newsletter issue</a
-              >
-            </MenuItem>
-            <MenuItem v-slot="{ active }" class="block">
-              <a
-                @click="router.push('/admin/password')"
-                :class="[
-                  active ? 'bg-blue-500 text-white' : 'text-gray-900',
-                  'cursor-default px-2 py-2 text-md rounded-md',
-                ]"
-                >Change password</a
-              >
-            </MenuItem>
-            <MenuItem v-slot="{ active }" class="block"
-              ><a
-                @click="logout(router)"
-                :class="[
-                  active ? 'bg-blue-500 text-white' : 'text-gray-900',
-                  'cursor-default px-2 py-2 text-md rounded-md',
-                ]"
-                >Log out</a
-              ></MenuItem
+            {{ username }}
+            <ChevronDownIcon class="h-5 w-5" aria-hidden="true"
+          /></MenuButton>
+          <div>
+            <MenuItems
+              class="absolute right-0 w-56 origin-top-right bg-white rounded-md px-1 py-1 shadow-lg ring-1 ring-black/5 focus:outline-none"
             >
-          </MenuItems>
-        </div>
-      </Menu>
+              <MenuItem v-slot="{ active }" class="block">
+                <a
+                  @click="router.push('/')"
+                  :class="[
+                    active ? 'bg-blue-500 text-white' : 'text-gray-900',
+                    'cursor-default px-2 py-2 text-md rounded-md',
+                  ]"
+                  >Subscribe to newsletter</a
+                >
+              </MenuItem>
+              <MenuItem v-slot="{ active }" class="block">
+                <a
+                  @click="router.push('/admin/newsletters')"
+                  :class="[
+                    active ? 'bg-blue-500 text-white' : 'text-gray-900',
+                    'cursor-default px-2 py-2 text-md rounded-md',
+                  ]"
+                  >Send a newsletter issue</a
+                >
+              </MenuItem>
+              <MenuItem v-slot="{ active }" class="block">
+                <a
+                  @click="router.push('/admin/password')"
+                  :class="[
+                    active ? 'bg-blue-500 text-white' : 'text-gray-900',
+                    'cursor-default px-2 py-2 text-md rounded-md',
+                  ]"
+                  >Change password</a
+                >
+              </MenuItem>
+              <MenuItem v-slot="{ active }" class="block"
+                ><a
+                  @click="logout(router)"
+                  :class="[
+                    active ? 'bg-blue-500 text-white' : 'text-gray-900',
+                    'cursor-default px-2 py-2 text-md rounded-md',
+                  ]"
+                  >Log out</a
+                ></MenuItem
+              >
+            </MenuItems>
+          </div>
+        </Menu>
+      </div>
+      <div v-else>
+        <a
+          @click="selfRequestLogin"
+          class="text-gray-900 hover:bg-gray-400 rounded-md px-2 py-2 cursor-default"
+          >Log in</a
+        >
+      </div>
     </div>
-    <div v-else>
-      <a
-        @click="selfRequestLogin"
-        class="text-gray-900 hover:bg-gray-400 rounded-md px-2 py-2 cursor-default"
-        >Log in</a
-      >
-    </div>
-  </div>
+  </nav>
   <div>
     <RouterView />
   </div>
