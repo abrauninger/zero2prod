@@ -18,15 +18,21 @@
           <div>
             <MenuItems class="absolute right-0 w-48 origin-top-right bg-white rounded-md px-3 py-1">
               <MenuItem class="block"
-                ><RouterLink to="/admin">Admin dashboard</RouterLink></MenuItem
+                ><RouterLink to="/admin" class="cursor-default"
+                  >Admin dashboard</RouterLink
+                ></MenuItem
               >
-              <MenuItem class="block"><a @click="logout">Log out</a></MenuItem>
+              <MenuItem class="block"
+                ><a @click="logout" class="cursor-default">Log out</a></MenuItem
+              >
             </MenuItems>
           </div>
         </Menu>
       </div>
       <div v-else>
-        <AppButton @click="selfRequestLogin">Log in</AppButton>
+        <a @click="selfRequestLogin" class="text-blue-800 hover:text-blue-950 cursor-default"
+          >Log in</a
+        >
       </div>
     </div>
   </nav>
