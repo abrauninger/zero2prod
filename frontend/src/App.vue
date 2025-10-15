@@ -20,6 +20,13 @@
       <div v-else>
         <AppButton @click="selfRequestLogin">Log in</AppButton>
       </div>
+      <Menu>
+        <MenuButton>Options</MenuButton>
+        <MenuItems>
+          <MenuItem><a>Foo</a></MenuItem>
+          <MenuItem><a>Bar</a></MenuItem>
+        </MenuItems>
+      </Menu>
     </div>
   </nav>
   <div>
@@ -31,6 +38,8 @@
 import { watchEffect } from 'vue'
 
 import { RouterLink, RouterView, useRoute, useRouter } from 'vue-router'
+
+import { Menu, MenuButton, MenuItems, MenuItem } from '@headlessui/vue'
 
 import { username, fetchUsername, logout, setLoginSource } from './state.ts'
 
