@@ -1,7 +1,8 @@
 <template>
   <div class="flex space-x-4 justify-end px-2 py-2">
+    <AppBreadcrumb :breadcrumbs="generatedBreadcrumbs()" />
     <div v-if="username">
-      <span>Logged in as </span>
+      <span class="text-gray-500">Logged in as </span>
 
       <Menu as="div" class="relative inline-block" v-slot="{ open }">
         <MenuButton :class="[open ? 'bg-gray-400' : '', 'flex rounded-md px-1 py-1 font-bold']">
@@ -77,6 +78,8 @@ import { RouterView, useRoute, useRouter } from 'vue-router'
 import { Menu, MenuButton, MenuItems, MenuItem } from '@headlessui/vue'
 import { ChevronDownIcon } from '@heroicons/vue/20/solid'
 
+import AppBreadcrumb, { BreadcrumbItem } from './AppBreadcrumb.vue'
+
 import { username, fetchUsername, logout, setLoginSource } from './state.ts'
 
 const router = useRouter()
@@ -94,4 +97,18 @@ const selfRequestLogin = async () => {
 
 // Explanation of why we use direct calls to 'router.push' instead of RouterLink:
 // https://stackoverflow.com/a/76857856
+
+const generatedBreadcrumbs = () => {
+  const breadcrumbs: BreadcrumbItem[] = []
+  route.matched.forEach((route) => {
+    if (route.meta && route.meta.breadcrumb) {
+      breadcrumbs.push({
+        name: route.meta.breadcrumb,
+        link: route.path,
+      })
+    }
+  })
+  console.log(breadcrumbs)
+  return breadcrumbs
+}
 </script>

@@ -42,9 +42,11 @@ const router = useRouter()
 
 const handleSubmit = async () => {
   if (await login(username.value, password.value, { error: errorMessage, info: infoMessage })) {
+    await fetchUsername()
     if (loginSource !== null) {
-      await fetchUsername()
       router.push(loginSource)
+    } else {
+      router.push('/')
     }
   }
 }
