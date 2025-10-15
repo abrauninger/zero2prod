@@ -19,7 +19,7 @@ import { ChevronRightIcon } from '@heroicons/vue/20/solid'
 
 export interface BreadcrumbItem {
   name: string
-  link: string
+  link?: string
 }
 
 defineProps({

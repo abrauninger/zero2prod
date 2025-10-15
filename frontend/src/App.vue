@@ -1,11 +1,16 @@
 <template>
-  <div class="flex space-x-4 justify-end px-2 py-2">
+  <div class="flex space-x-4 justify-between px-2 py-2">
     <AppBreadcrumb :breadcrumbs="generatedBreadcrumbs()" />
     <div v-if="username">
       <span class="text-gray-500">Logged in as </span>
 
       <Menu as="div" class="relative inline-block" v-slot="{ open }">
-        <MenuButton :class="[open ? 'bg-gray-400' : '', 'flex rounded-md px-1 py-1 font-bold']">
+        <MenuButton
+          :class="[
+            open ? 'bg-gray-400' : '',
+            'flex rounded-md px-1 py-1 font-bold hover:bg-gray-400',
+          ]"
+        >
           {{ username }}
           <ChevronDownIcon class="h-5 w-5" aria-hidden="true"
         /></MenuButton>
@@ -78,7 +83,8 @@ import { RouterView, useRoute, useRouter } from 'vue-router'
 import { Menu, MenuButton, MenuItems, MenuItem } from '@headlessui/vue'
 import { ChevronDownIcon } from '@heroicons/vue/20/solid'
 
-import AppBreadcrumb, { BreadcrumbItem } from './AppBreadcrumb.vue'
+import AppBreadcrumb from './AppBreadcrumb.vue'
+import type { BreadcrumbItem } from './AppBreadcrumb.vue'
 
 import { username, fetchUsername, logout, setLoginSource } from './state.ts'
 
@@ -100,12 +106,26 @@ const selfRequestLogin = async () => {
 
 const generatedBreadcrumbs = () => {
   const breadcrumbs: BreadcrumbItem[] = []
-  breadcrumbs.push({
-    name: 'Home',
-    link: '/',
-  })
 
-  // TODO: Simplify; right now this only enumerates one item.
+  console.log(route.matched)
+
+  if (
+    route.matched.length > 0 &&
+    route.matched[0] &&
+    route.matched[0].meta &&
+    !route.matched[0].meta.breadcrumb
+  ) {
+    breadcrumbs.push({
+      name: 'Home',
+    })
+  } else {
+    breadcrumbs.push({
+      name: 'Home',
+      link: '/',
+    })
+  }
+
+  // TODO: Simplify; right now this only enumerates at most one item.
   route.matched.forEach((route) => {
     if (route.meta && route.meta.breadcrumb) {
       breadcrumbs.push({
