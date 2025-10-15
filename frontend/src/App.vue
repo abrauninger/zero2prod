@@ -6,27 +6,28 @@
         class="rounded-md px-3 py-2 text-sm font-medium bg-gray-300 text-black hover:bg-gray-400 hover:text-blue-800"
         >Subscribe</RouterLink
       >
-      <RouterLink
-        to="/admin"
-        class="rounded-md px-3 py-2 text-sm font-medium bg-gray-300 text-black hover:bg-gray-400 hover:text-blue-800"
-        >Admin dashboard</RouterLink
-      >
+
       <div v-if="username" class="inline-block">
-        <span
-          >Logged in as <strong>{{ username }}</strong></span
-        >
-        <AppButton @click="logout">Log out</AppButton>
+        <span>Logged in as </span>
+
+        <Menu as="div" class="relative inline-block">
+          <MenuButton class="inline-flex">
+            <strong>{{ username }}</strong
+            ><ChevronDownIcon class="h-5 w-5" aria-hidden="true"
+          /></MenuButton>
+          <div>
+            <MenuItems class="absolute right-0 w-48 origin-top-right bg-white rounded-md px-3 py-1">
+              <MenuItem class="block"
+                ><RouterLink to="/admin">Admin dashboard</RouterLink></MenuItem
+              >
+              <MenuItem class="block"><a @click="logout">Log out</a></MenuItem>
+            </MenuItems>
+          </div>
+        </Menu>
       </div>
       <div v-else>
         <AppButton @click="selfRequestLogin">Log in</AppButton>
       </div>
-      <Menu>
-        <MenuButton>Options</MenuButton>
-        <MenuItems>
-          <MenuItem><a>Foo</a></MenuItem>
-          <MenuItem><a>Bar</a></MenuItem>
-        </MenuItems>
-      </Menu>
     </div>
   </nav>
   <div>
@@ -40,6 +41,7 @@ import { watchEffect } from 'vue'
 import { RouterLink, RouterView, useRoute, useRouter } from 'vue-router'
 
 import { Menu, MenuButton, MenuItems, MenuItem } from '@headlessui/vue'
+import { ChevronDownIcon } from '@heroicons/vue/20/solid'
 
 import { username, fetchUsername, logout, setLoginSource } from './state.ts'
 
