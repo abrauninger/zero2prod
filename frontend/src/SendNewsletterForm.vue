@@ -1,13 +1,13 @@
 <template>
   <AppForm heading="Publish a new newsletter issue" @submit="handleSubmit">
     <FormTextField v-model="title" id="title" label="Title" placeholder="Enter newsletter title" />
-    <FormTextField
+    <FormTextAreaField
       v-model="contentText"
       id="contentText"
       label="Plain-text content"
       placeholder="Enter plain-text content"
     />
-    <FormTextField
+    <FormTextAreaField
       v-model="contentHtml"
       id="contentHtml"
       label="HTML content"
@@ -28,6 +28,7 @@ import { v4 as uuidv4 } from 'uuid'
 import AppForm from './AppForm.vue'
 import AppMessages from './AppMessages.vue'
 import FormTextField from './FormTextField.vue'
+import FormTextAreaField from './FormTextAreaField.vue'
 import SubmitButton from './SubmitButton.vue'
 
 import { publishNewsletter } from './api.ts'
