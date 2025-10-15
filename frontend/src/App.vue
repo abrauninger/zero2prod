@@ -18,8 +18,8 @@
           <div>
             <MenuItems class="absolute right-0 w-48 origin-top-right bg-white rounded-md px-3 py-1">
               <MenuItem class="block"
-                ><RouterLink to="/admin" class="cursor-default"
-                  >Admin dashboard</RouterLink
+                ><a class="cursor-default" @click="routerLinkNavigate('/admin')"
+                  >Admin dashboard</a
                 ></MenuItem
               >
               <MenuItem class="block"
@@ -64,5 +64,10 @@ watchEffect(async () => {
 const selfRequestLogin = async () => {
   setLoginSource(route.path)
   router.push('/login')
+}
+
+// https://stackoverflow.com/a/76857856
+const routerLinkNavigate = (href: string) => {
+  router.push(href)
 }
 </script>
