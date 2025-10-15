@@ -52,7 +52,7 @@ const generatedBreadcrumbs = () => {
   route.matched.forEach((route) => {
     if (route.meta && route.meta.breadcrumb) {
       breadcrumbs.push({
-        name: route.meta.breadcrumb,
+        name: route.meta.breadcrumb as string,
       })
     }
   })
