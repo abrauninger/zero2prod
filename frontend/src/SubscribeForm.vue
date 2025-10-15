@@ -1,5 +1,6 @@
 <template>
   <AppForm heading="Welcome to our newsletter" @submit="handleSubmit">
+    <p>To subscribe to our newsletter, enter your information here.</p>
     <FormTextField v-model="name" id="name" label="Name" placeholder="Enter your name" />
     <FormTextField
       v-model="email"
