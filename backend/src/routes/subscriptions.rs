@@ -11,6 +11,7 @@ use crate::email_client::EmailClient;
 use crate::startup::ApplicationBaseUrl;
 use crate::utils::AppError;
 
+// TODO: Extract to a shared library that frontend and backend both use.
 #[derive(serde::Deserialize)]
 pub struct SubscribeFormData {
     email: String,

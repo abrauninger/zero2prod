@@ -26,6 +26,12 @@ fn App() -> Element {
     }
 }
 
+#[derive(serde::Serialize)]
+struct SubscribeApiParams {
+    name: String,
+    email: String,
+}
+
 #[component]
 fn SubscribeForm() -> Element {
     let name = use_signal(|| "".to_string());
@@ -34,8 +40,22 @@ fn SubscribeForm() -> Element {
     rsx! {
         AppForm {
             heading: "Welcome to our newsletter",
-            onsubmit: || {
+            onsubmit: move || async move {
                 tracing::info!("Form submitted!");
+
+                let params = SubscribeApiParams {
+                    name: name(),
+                    email: email(),
+                };
+
+                let response = reqwest::Client::new()
+                    .post("http://localhost:8000/api/subscriptions")
+                    .json(&params)
+                    .send()
+                    .await;
+
+                // TODO: Check response and show errors
+                response.unwrap();
             },
             p {
                 "To subscribe to our newsletter, enter your information here."
