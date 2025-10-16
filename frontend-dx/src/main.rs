@@ -38,6 +38,11 @@ fn SubscribeForm() -> Element {
                 label: "Name",
                 placeholder: "Enter your name"
             }
+            FormTextField {
+                id: "email",
+                label: "Email address",
+                placeholder: "Enter your email address"
+            }
         }
     }
 }
