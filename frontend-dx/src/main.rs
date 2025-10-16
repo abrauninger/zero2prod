@@ -32,6 +32,11 @@ struct SubscribeApiParams {
     email: String,
 }
 
+#[derive(Debug, serde::Deserialize)]
+struct SubscribeApiResponse {
+    error_id: String,
+}
+
 #[component]
 fn SubscribeForm() -> Element {
     let name = use_signal(|| "".to_string());
@@ -59,10 +64,26 @@ fn SubscribeForm() -> Element {
                     .send()
                     .await;
 
-                // TODO: Check response and show errors
-                //response.unwrap();
-
                 tracing::info!("Request completed: {response:?}");
+
+                // TODO: Check response and show errors
+                match response {
+                    Ok(response) => {
+                        tracing::info!("Response was success");
+
+                        // TODO: Don't use hard-coded constants for status codes
+                        let status = response.status();
+                        if response.status() != 200 {
+                            tracing::info!("Response was a non-successful status code: {status}");
+
+                            let api_response = response.json::<SubscribeApiResponse>().await;
+                            tracing::info!("api_response: {api_response:?}");
+                        }
+                    }
+                    Err(e) => {
+                        tracing::error!("Error: {e:?}")
+                    }
+                }
             },
             p {
                 "To subscribe to our newsletter, enter your information here."
