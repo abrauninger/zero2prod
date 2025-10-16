@@ -1,0 +1,6 @@
+{
+  "name": "dioxus-template",
+  "devDependencies": {
+    "@tailwindcss/cli": "^4.0.6"
+  }
+}
