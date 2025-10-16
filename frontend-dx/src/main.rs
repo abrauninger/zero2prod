@@ -28,19 +28,25 @@ fn App() -> Element {
 
 #[component]
 fn SubscribeForm() -> Element {
+    let name = use_signal(|| "".to_string());
+    let email = use_signal(|| "".to_string());
+
     rsx! {
         AppForm {
             heading: "Welcome to our newsletter",
+            onsubmit: || {
+                tracing::info!("Form submitted!");
+            },
             p {
                 "To subscribe to our newsletter, enter your information here."
             }
             FormTextField {
-                id: "name",
+                value: name,
                 label: "Name",
                 placeholder: "Enter your name"
             }
             FormTextField {
-                id: "email",
+                value: email,
                 label: "Email address",
                 placeholder: "Enter your email address"
             }
@@ -52,7 +58,7 @@ fn SubscribeForm() -> Element {
 }
 
 #[component]
-fn AppForm(heading: String, children: Element) -> Element {
+fn AppForm(heading: String, children: Element, onsubmit: EventHandler<()>) -> Element {
     rsx! {
         div {
             class: "mx-auto max-w-xl py-12 px-6",
@@ -62,7 +68,7 @@ fn AppForm(heading: String, children: Element) -> Element {
             form {
                 onsubmit: move |event| {
                     event.prevent_default();
-                    tracing::info!("Submitted! {event:?}");
+                    onsubmit(());
                 },
                 div {
                     class: "grid grid-cols-1 gap-6 mt-8",
@@ -84,7 +90,7 @@ fn AppHeading(children: Element) -> Element {
 }
 
 #[component]
-fn FormTextField(id: String, label: String, placeholder: String) -> Element {
+fn FormTextField(value: Signal<String>, label: String, placeholder: String) -> Element {
     rsx! {
         div {
             label {
@@ -92,7 +98,8 @@ fn FormTextField(id: String, label: String, placeholder: String) -> Element {
                 "{label}",
             }
             input {
-                id,
+                value: "{value}",
+                oninput: move |e| value.set(e.value()),
                 placeholder,
                 class: "rounded mt-1 block w-full"
             }
