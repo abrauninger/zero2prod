@@ -5,9 +5,7 @@ use dioxus::prelude::*;
 enum Route {
     #[layout(Navbar)]
     #[route("/")]
-    Home {},
-    #[route("/blog/:id")]
-    Blog { id: i32 },
+    SubscribeForm {},
 }
 
 const FAVICON: Asset = asset!("/assets/favicon.ico");
@@ -29,52 +27,40 @@ fn App() -> Element {
 }
 
 #[component]
-pub fn Hero() -> Element {
+fn SubscribeForm() -> Element {
     rsx! {
         div {
-            id: "hero",
-            img { src: HEADER_SVG, id: "header" }
-            div { id: "links",
-                a { href: "https://dioxuslabs.com/learn/0.6/", "📚 Learn Dioxus" }
-                a { href: "https://dioxuslabs.com/awesome", "🚀 Awesome Dioxus" }
-                a { href: "https://github.com/dioxus-community/", "📡 Community Libraries" }
-                a { href: "https://github.com/DioxusLabs/sdk", "⚙️ Dioxus Development Kit" }
-                a { href: "https://marketplace.visualstudio.com/items?itemName=DioxusLabs.dioxus", "💫 VSCode Extension" }
-                a { href: "https://discord.gg/XgGxMSkvUM", "👋 Community Discord" }
+            p {
+                "To subscribe to our newsletter, enter your information here."
+            }
+            FormTextField {
+                id: "name",
+                label: "Name",
+                placeholder: "Enter your name"
             }
         }
     }
 }
 
-/// Home page
-#[component]
-fn Home() -> Element {
-    rsx! {
-        Hero {}
-
-    }
+#[derive(Clone, PartialEq, Props)]
+struct FormTextFieldProps {
+    id: String,
+    label: String,
+    placeholder: String,
 }
 
-/// Blog page
 #[component]
-pub fn Blog(id: i32) -> Element {
+fn FormTextField(props: FormTextFieldProps) -> Element {
     rsx! {
         div {
-            id: "blog",
-
-            // Content
-            h1 { "This is blog #{id}!" }
-            p { "In blog #{id}, we show how the Dioxus router works and how URL parameters can be passed as props to our route components." }
-
-            // Navigation links
-            Link {
-                to: Route::Blog { id: id - 1 },
-                "Previous"
+            label {
+                class: "text-gray-700",
+                "{props.label}",
             }
-            span { " <---> " }
-            Link {
-                to: Route::Blog { id: id + 1 },
-                "Next"
+            input {
+                id: props.id,
+                placeholder: props.placeholder,
+                class: "rounded mt-1 block w-full"
             }
         }
     }
@@ -87,12 +73,8 @@ fn Navbar() -> Element {
         div {
             id: "navbar",
             Link {
-                to: Route::Home {},
+                to: Route::SubscribeForm {},
                 "Home"
-            }
-            Link {
-                to: Route::Blog { id: 1 },
-                "Blog"
             }
         }
 
