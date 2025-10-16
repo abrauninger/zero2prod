@@ -41,24 +41,17 @@ fn SubscribeForm() -> Element {
     }
 }
 
-#[derive(Clone, PartialEq, Props)]
-struct FormTextFieldProps {
-    id: String,
-    label: String,
-    placeholder: String,
-}
-
 #[component]
-fn FormTextField(props: FormTextFieldProps) -> Element {
+fn FormTextField(id: String, label: String, placeholder: String) -> Element {
     rsx! {
         div {
             label {
                 class: "text-gray-700",
-                "{props.label}",
+                "{label}",
             }
             input {
-                id: props.id,
-                placeholder: props.placeholder,
+                id,
+                placeholder,
                 class: "rounded mt-1 block w-full"
             }
         }
