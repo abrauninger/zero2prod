@@ -47,7 +47,7 @@ fn AppForm(heading: String, children: Element) -> Element {
     rsx! {
         div {
             class: "mx-auto max-w-xl py-12 px-6",
-            h1 {
+            AppHeading {
                 {heading}
             }
             form {
@@ -56,6 +56,16 @@ fn AppForm(heading: String, children: Element) -> Element {
                     {children}
                 }
             }
+        }
+    }
+}
+
+#[component]
+fn AppHeading(children: Element) -> Element {
+    rsx! {
+        h1 {
+            class: "text-4xl font-bold",
+            {children}
         }
     }
 }
