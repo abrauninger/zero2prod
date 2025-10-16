@@ -90,11 +90,13 @@ fn SubscribeForm() -> Element {
             }
             FormTextField {
                 value: name,
+                name: "name",
                 label: "Name",
                 placeholder: "Enter your name"
             }
             FormTextField {
                 value: email,
+                name: "email",
                 label: "Email address",
                 placeholder: "Enter your email address"
             }
@@ -138,14 +140,22 @@ fn AppHeading(children: Element) -> Element {
 }
 
 #[component]
-fn FormTextField(value: Signal<String>, label: String, placeholder: String) -> Element {
+fn FormTextField(
+    value: Signal<String>,
+    label: String,
+    name: String,
+    placeholder: String,
+) -> Element {
     rsx! {
         div {
             label {
+                for: name.clone(),
                 class: "text-gray-700",
                 "{label}",
             }
             input {
+                id: name.clone(),
+                name,
                 value: "{value}",
                 oninput: move |e| value.set(e.value()),
                 placeholder,
