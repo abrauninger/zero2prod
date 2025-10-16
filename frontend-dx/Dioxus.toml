@@ -19,3 +19,7 @@ script = []
 # Javascript code file
 # serve: [dev-server] only
 script = []
+
+# Proxy API requests (for development)
+[[web.proxy]]
+backend = "http://localhost:8000/api/"

@@ -48,14 +48,21 @@ fn SubscribeForm() -> Element {
                     email: email(),
                 };
 
+                // https://github.com/seanmonstar/reqwest/issues/1433
+                let url_base = web_sys::window().unwrap().location().origin().unwrap();
+
+                tracing::info!("url_base: {url_base}");
+
                 let response = reqwest::Client::new()
-                    .post("http://localhost:8000/api/subscriptions")
+                    .post(format!("{url_base}/api/subscriptions"))
                     .json(&params)
                     .send()
                     .await;
 
                 // TODO: Check response and show errors
-                response.unwrap();
+                //response.unwrap();
+
+                tracing::info!("Request completed: {response:?}");
             },
             p {
                 "To subscribe to our newsletter, enter your information here."

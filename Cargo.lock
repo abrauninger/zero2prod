@@ -2338,6 +2338,7 @@ dependencies = [
  "reqwest",
  "serde",
  "tracing",
+ "web-sys",
 ]
 
 [[package]]
