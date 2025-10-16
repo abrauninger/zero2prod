@@ -92,12 +92,14 @@ fn SubscribeForm() -> Element {
                 value: name,
                 name: "name",
                 label: "Name",
+                autocomplete: "name",
                 placeholder: "Enter your name"
             }
             FormTextField {
                 value: email,
                 name: "email",
                 label: "Email address",
+                autocomplete: "email",
                 placeholder: "Enter your email address"
             }
             SubmitButton {
@@ -144,6 +146,7 @@ fn FormTextField(
     value: Signal<String>,
     label: String,
     name: String,
+    autocomplete: String,
     placeholder: String,
 ) -> Element {
     rsx! {
@@ -159,6 +162,7 @@ fn FormTextField(
                 value: "{value}",
                 oninput: move |e| value.set(e.value()),
                 placeholder,
+                autocomplete,
                 class: "rounded mt-1 block w-full"
             }
         }
