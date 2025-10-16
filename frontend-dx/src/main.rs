@@ -28,7 +28,8 @@ fn App() -> Element {
 #[component]
 fn SubscribeForm() -> Element {
     rsx! {
-        div {
+        AppForm {
+            heading: "Welcome to our newsletter",
             p {
                 "To subscribe to our newsletter, enter your information here."
             }
@@ -36,6 +37,24 @@ fn SubscribeForm() -> Element {
                 id: "name",
                 label: "Name",
                 placeholder: "Enter your name"
+            }
+        }
+    }
+}
+
+#[component]
+fn AppForm(heading: String, children: Element) -> Element {
+    rsx! {
+        div {
+            class: "mx-auto max-w-xl py-12 px-6",
+            h1 {
+                {heading}
+            }
+            form {
+                div {
+                    class: "grid grid-cols-1 gap-6 mt-8",
+                    {children}
+                }
             }
         }
     }
