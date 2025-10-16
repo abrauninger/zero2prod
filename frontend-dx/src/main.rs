@@ -43,6 +43,9 @@ fn SubscribeForm() -> Element {
                 label: "Email address",
                 placeholder: "Enter your email address"
             }
+            SubmitButton {
+                "Subscribe"
+            }
         }
     }
 }
@@ -87,6 +90,19 @@ fn FormTextField(id: String, label: String, placeholder: String) -> Element {
                 id,
                 placeholder,
                 class: "rounded mt-1 block w-full"
+            }
+        }
+    }
+}
+
+#[component]
+fn SubmitButton(children: Element) -> Element {
+    rsx! {
+        div {
+            button {
+                type: "submit",
+                class: "text-white bg-blue-500 hover:bg-blue-800 font-medium text-sm rounded-lg px-5 py-2.5 mt-8",
+                {children}
             }
         }
     }
