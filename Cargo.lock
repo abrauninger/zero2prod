@@ -903,6 +903,16 @@ dependencies = [
 ]
 
 [[package]]
+name = "console_error_panic_hook"
+version = "0.1.7"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "a06aeb73f470f66dcdbf7223caeebb85984942f22f1adb2a088cf9668146bbbc"
+dependencies = [
+ "cfg-if",
+ "wasm-bindgen",
+]
+
+[[package]]
 name = "const-oid"
 version = "0.9.6"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1373,7 +1383,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "f06e0ef1f6209137851223fdf5e586ab2e43d69cab0297410e815437d379f862"
 dependencies = [
  "dioxus-asset-resolver",
- "dioxus-cli-config",
+ "dioxus-cli-config 0.7.0-rc.2",
  "dioxus-config-macro",
  "dioxus-config-macros",
  "dioxus-core",
@@ -1385,7 +1395,7 @@ dependencies = [
  "dioxus-history",
  "dioxus-hooks",
  "dioxus-html",
- "dioxus-logger",
+ "dioxus-logger 0.7.0-rc.2",
  "dioxus-router",
  "dioxus-signals",
  "dioxus-stores",
@@ -1401,7 +1411,7 @@ version = "0.7.0-rc.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "be011c4555d097c3a144df7e792450d99b295beb50d99c27741b4044d5cc4751"
 dependencies = [
- "dioxus-cli-config",
+ "dioxus-cli-config 0.7.0-rc.2",
  "http 1.3.1",
  "infer",
  "jni",
@@ -1416,6 +1426,12 @@ dependencies = [
  "wasm-bindgen-futures",
  "web-sys",
 ]
+
+[[package]]
+name = "dioxus-cli-config"
+version = "0.6.3"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "cdd16948f1ffdb068dd9a64812158073a4250e2af4e98ea31fdac0312e6bce86"
 
 [[package]]
 name = "dioxus-cli-config"
@@ -1496,7 +1512,7 @@ dependencies = [
  "cocoa",
  "core-foundation 0.10.1",
  "dioxus-asset-resolver",
- "dioxus-cli-config",
+ "dioxus-cli-config 0.7.0-rc.2",
  "dioxus-core",
  "dioxus-devtools",
  "dioxus-document",
@@ -1545,7 +1561,7 @@ version = "0.7.0-rc.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "c467d13d99cfdc7e41e158196d2db48fb523e3b308f59812491dbff3dbf4083e"
 dependencies = [
- "dioxus-cli-config",
+ "dioxus-cli-config 0.7.0-rc.2",
  "dioxus-core",
  "dioxus-devtools-types",
  "dioxus-signals",
@@ -1607,7 +1623,7 @@ dependencies = [
  "content_disposition",
  "derive_more 2.0.1",
  "dioxus-asset-resolver",
- "dioxus-cli-config",
+ "dioxus-cli-config 0.7.0-rc.2",
  "dioxus-core",
  "dioxus-fullstack-core",
  "dioxus-fullstack-macro",
@@ -1773,11 +1789,24 @@ dependencies = [
 
 [[package]]
 name = "dioxus-logger"
+version = "0.6.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "545961e752f6c8bf59c274951b3c8b18a106db6ad2f9e2035b29e1f2a3e899b1"
+dependencies = [
+ "console_error_panic_hook",
+ "dioxus-cli-config 0.6.3",
+ "tracing",
+ "tracing-subscriber",
+ "tracing-wasm",
+]
+
+[[package]]
+name = "dioxus-logger"
 version = "0.7.0-rc.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "3fb24661898206648dba4e279590d3e4e4a79a7a28e4dde47a0b8db06373e26e"
 dependencies = [
- "dioxus-cli-config",
+ "dioxus-cli-config 0.7.0-rc.2",
  "tracing",
  "tracing-subscriber",
  "tracing-wasm",
@@ -1789,7 +1818,7 @@ version = "0.7.0-rc.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "177c7e319b21026b8dd768a3c5dc8279b96716eb18a74d453fea702e5a9078ce"
 dependencies = [
- "dioxus-cli-config",
+ "dioxus-cli-config 0.7.0-rc.2",
  "dioxus-core",
  "dioxus-core-macro",
  "dioxus-history",
@@ -1875,7 +1904,7 @@ version = "0.7.0-rc.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "c1e77d5ea91353c1f43429d8efd145e0881d05de46d8366bd3d2c53c6f5fc80d"
 dependencies = [
- "dioxus-cli-config",
+ "dioxus-cli-config 0.7.0-rc.2",
  "dioxus-core",
  "dioxus-core-types",
  "dioxus-devtools",
@@ -2305,6 +2334,8 @@ name = "frontend"
 version = "0.1.0"
 dependencies = [
  "dioxus",
+ "dioxus-logger 0.6.2",
+ "tracing",
 ]
 
 [[package]]
@@ -3664,7 +3695,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "94b859887ea5cce08d9df9e79132867682492215695d6be32775ad0571a6fba0"
 dependencies = [
  "const-serialize",
- "dioxus-cli-config",
+ "dioxus-cli-config 0.7.0-rc.2",
  "dioxus-core-types",
  "serde",
 ]

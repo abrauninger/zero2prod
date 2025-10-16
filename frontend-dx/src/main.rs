@@ -13,6 +13,7 @@ const MAIN_CSS: Asset = asset!("/assets/main.css");
 const TAILWIND_CSS: Asset = asset!("/assets/tailwind.css");
 
 fn main() {
+    dioxus_logger::init(dioxus_logger::tracing::Level::INFO).expect("failed to init logger");
     dioxus::launch(App);
 }
 
@@ -59,6 +60,10 @@ fn AppForm(heading: String, children: Element) -> Element {
                 {heading}
             }
             form {
+                onsubmit: move |event| {
+                    event.prevent_default();
+                    tracing::info!("Submitted! {event:?}");
+                },
                 div {
                     class: "grid grid-cols-1 gap-6 mt-8",
                     {children}
