@@ -47,3 +47,18 @@ APP_ENVIRONMENT=production
 <img src="./home-page.png">
 
 <img src="./send-newsletter.png">
+
+## Troubleshooting
+
+### `"Too many open files"`
+
+Problem:
+```
+thread 'subscriptions_confirm::confirm_returns_500_if_token_is_invalid' panicked at backend/tests/api/subscriptions_confirm.rs:88:48:
+Failed building the Runtime: Os { code: 24, kind: Uncategorized, message: "Too many open files" }
+```
+
+Solution:
+```
+ulimit -n 10240
+```
