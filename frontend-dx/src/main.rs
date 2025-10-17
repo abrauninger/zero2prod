@@ -1,6 +1,10 @@
 mod api;
 
 use dioxus::prelude::*;
+use dioxus_primitives::dropdown_menu::{
+    self, DropdownMenu, DropdownMenuContent, DropdownMenuContentProps, DropdownMenuItem,
+    DropdownMenuItemProps, DropdownMenuProps, DropdownMenuTrigger, DropdownMenuTriggerProps,
+};
 
 use crate::api::{add_subscriber, Message};
 
@@ -39,6 +43,7 @@ fn SubscribeForm() -> Element {
     let mut info_message: Signal<Option<Message>> = use_signal(|| None);
 
     rsx! {
+        UserMenu {}
         AppForm {
             heading: "Welcome to our newsletter",
             onsubmit: move || async move {
@@ -180,5 +185,40 @@ fn Navbar() -> Element {
         }
 
         Outlet::<Route> {}
+    }
+}
+
+#[component]
+#[allow(clippy::unnecessary_cast)]
+fn UserMenu() -> Element {
+    rsx! {
+        DropdownMenu {
+            class: "relative inline-block",
+            DropdownMenuTrigger {
+                class: "flex rounded-md px-1 py-1 font-bold hover:bg-gray-400",
+                "Log in"
+            }
+            DropdownMenuContent {
+                class: "absolute left-0 w-56 origin-top-right bg-white rounded-md px-1 py-1 shadow-lg ring-1 ring-black/5 focus:outline-none",
+                DropdownMenuItem {
+                    class: "px-2 py-2 text-md rounded-md text-gray-900 hover:bg-blue-500 hover:text-white",
+                    index: 0 as usize,
+                    value: "",
+                    on_select: |_value: String| {
+                        tracing::info!("First menu item clicked");
+                    },
+                    "First item"
+                }
+                DropdownMenuItem {
+                    class: "px-2 py-2 text-md rounded-md text-gray-900 hover:bg-blue-500 hover:text-white",
+                    index: 1 as usize,
+                    value: "",
+                    on_select: |_value: String| {
+                        tracing::info!("Second menu item clicked");
+                    },
+                    "Second item"
+                }
+            }
+        }
     }
 }
