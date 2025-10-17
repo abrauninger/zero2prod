@@ -221,10 +221,12 @@ fn UserMenu() -> Element {
                 "Log in"
             }
             DropdownMenuContent {
+                id: "foo-bar-bazzy",
                 //class: "opacity-0 scale-95 hover:opacity-100 hover:scale-100 absolute left-0 w-56 origin-top-right bg-white rounded-md px-1 py-1 shadow-lg ring-1 ring-black/5 focus:outline-none",
-                class: format!("absolute left-0 w-56 origin-top-right bg-white rounded-md px-1 py-1 shadow-lg ring-1 ring-black/5 focus:outline-none"),
-                //style: "transition-property: all; transition-duration: 1s;",
-                style: format!("{animating_styles} transition-property: all; transition-duration: 1s;"),
+                //class: format!("absolute left-0 w-56 origin-top-right bg-white rounded-md px-1 py-1 shadow-lg ring-1 ring-black/5 focus:outline-none"),
+                class: "my-menu absolute left-0 w-56 origin-top-right bg-white rounded-md px-1 py-1 shadow-lg ring-1 ring-black/5 focus:outline-none",
+                style: "transition-property: all; transition-duration: 300ms;",
+                //style: format!("{animating_styles} transition-property: all; transition-duration: 1s;"),
                 DropdownMenuItem {
                     class: "px-2 py-2 text-md rounded-md text-gray-900 hover:bg-blue-500 hover:text-white",
                     index: 0 as usize,

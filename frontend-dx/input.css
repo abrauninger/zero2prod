@@ -1,2 +1,12 @@
 @import "tailwindcss";
 @plugin "@tailwindcss/forms";
+
+.my-menu[data-state="open"] {
+    opacity: 1;
+    scale: 100%;
+}
+
+.my-menu[data-state="closed"] {
+    opacity: 0;
+    scale: 95%;
+}

@@ -418,6 +418,14 @@
     }
   }
 }
+.my-menu[data-state="open"] {
+  opacity: 1;
+  scale: 100%;
+}
+.my-menu[data-state="closed"] {
+  opacity: 0;
+  scale: 95%;
+}
 @layer base {
   [type='text'],input:where(:not([type])),[type='email'],[type='url'],[type='password'],[type='number'],[type='date'],[type='datetime-local'],[type='month'],[type='search'],[type='tel'],[type='time'],[type='week'],[multiple],textarea,select {
     appearance: none;
