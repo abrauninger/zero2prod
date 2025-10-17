@@ -2333,10 +2333,12 @@ dependencies = [
 name = "frontend"
 version = "0.1.0"
 dependencies = [
+ "anyhow",
  "dioxus",
  "dioxus-logger 0.6.2",
  "reqwest",
  "serde",
+ "thiserror 2.0.17",
  "tracing",
  "web-sys",
 ]
