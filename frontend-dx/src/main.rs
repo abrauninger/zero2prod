@@ -192,28 +192,47 @@ fn Navbar() -> Element {
 #[allow(clippy::unnecessary_cast)]
 fn UserMenu() -> Element {
     let mut is_open = use_signal(|| false);
-    let animating_classes = use_memo(move || {
+
+    // The entrance/exit animations for the menu are triggered by the 'is_open' signal, but if we use
+    // 'is_open' directly we'll only run the exit animation; the entrance animation doesn't run
+    // because the menu contents would be added to the DOM immediately when 'is_open' becomes true
+    // which means that the browser doesn't see the menu contents in the DOM in their pre-entrance state.
+    // To get the entrance animation to run properly, we wait for the menu contents to appear in the DOM
+    // (with their pre-entrance styling), then after a short delay we update the styling.
+    //
+    // This hack is related to this code in Dioxus Components:
+    // https://github.com/DioxusLabs/components/blob/723d43cd1b4e433599881139bafad4b07cdbae46/primitives/src/dropdown_menu.rs#L320C9-L320C22
+    // Specifically the `if render()` check:
+    //
+    // rsx! {
+    //     if render() {
+    //         div {
+    //
+    let is_delayed_open = use_resource(move || async move {
         if is_open() {
+            // Yield execution to give time for the menu contents to appear in the DOM.
+            // Right now we do this with 'eval' to call into JavaScript and yield back.
+            // TODO: Some better way?  Do we need JavaScript here?
+            // Note that a timeout of 0 works on Chrome but not Safari, so we use a timeout of 10ms.
+            let _ = dioxus::document::eval("await new Promise(r => setTimeout(r, 10));").await;
+            true
+        } else {
+            false
+        }
+    });
+
+    let animating_classes = use_memo(move || {
+        if let Some(true) = is_delayed_open() {
             "opacity-100 scale-100"
         } else {
             "opacity-0 scale-95"
         }
     });
 
-    // let animating_styles = use_memo(move || {
-    //     if is_open() {
-    //         "opacity: 1"
-    //     } else {
-    //         "opacity: 0"
-    //     }
-    // });
-
     rsx! {
         DropdownMenu {
-            //open: is_open,
             on_open_change: move |value| {
                 is_open.set(value);
-                tracing::info!("Is open: {value}");
             },
             class: "relative inline-block",
             DropdownMenuTrigger {
@@ -221,12 +240,8 @@ fn UserMenu() -> Element {
                 "Log in"
             }
             DropdownMenuContent {
-                id: "foo-bar-bazzy",
-                //class: "opacity-0 scale-95 hover:opacity-100 hover:scale-100 absolute left-0 w-56 origin-top-right bg-white rounded-md px-1 py-1 shadow-lg ring-1 ring-black/5 focus:outline-none",
                 class: format!("{animating_classes} absolute left-0 w-56 origin-top-right bg-white rounded-md px-1 py-1 shadow-lg ring-1 ring-black/5 focus:outline-none"),
-                //class: "absolute left-0 w-56 origin-top-right bg-white rounded-md px-1 py-1 shadow-lg ring-1 ring-black/5 focus:outline-none",
-                style: "transition-property: all; transition-duration: 300ms;",
-                //style: format!("{animating_styles} transition-property: all; transition-duration: 1s;"),
+                style: "transition-property: all; transition-duration: 100ms;",
                 DropdownMenuItem {
                     class: "px-2 py-2 text-md rounded-md text-gray-900 hover:bg-blue-500 hover:text-white",
                     index: 0 as usize,
