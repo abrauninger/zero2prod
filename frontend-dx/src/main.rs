@@ -221,7 +221,7 @@ fn UserMenu() -> Element {
         }
     });
 
-    let animating_classes = use_memo(move || {
+    let animated_classes = use_memo(move || {
         if let Some(true) = is_delayed_open() {
             "opacity-100 scale-100"
         } else {
@@ -231,7 +231,7 @@ fn UserMenu() -> Element {
 
     // The easing function is also dependent on whether the menu is opening or closing, but we don't need
     // to delay setting it.
-    let animating_styles = use_memo(move || {
+    let animated_styles = use_memo(move || {
         if is_open() {
             "transition-timing-function: ease-out;"
         } else {
@@ -250,8 +250,8 @@ fn UserMenu() -> Element {
                 "Log in"
             }
             DropdownMenuContent {
-                class: format!("{animating_classes} absolute left-0 w-56 origin-top-right bg-white rounded-md px-1 py-1 shadow-lg ring-1 ring-black/5 focus:outline-none"),
-                style: format!("{animating_styles} transition-property: all; transition-duration: 100ms;"),
+                class: format!("{animated_classes} absolute left-0 w-56 origin-top-right bg-white rounded-md px-1 py-1 shadow-lg ring-1 ring-black/5 focus:outline-none"),
+                style: format!("{animated_styles} transition-property: all; transition-duration: 100ms;"),
                 DropdownMenuItem {
                     class: "px-2 py-2 text-md rounded-md text-gray-900 hover:bg-blue-500 hover:text-white",
                     index: 0 as usize,
