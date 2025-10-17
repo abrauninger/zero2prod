@@ -192,21 +192,21 @@ fn Navbar() -> Element {
 #[allow(clippy::unnecessary_cast)]
 fn UserMenu() -> Element {
     let mut is_open = use_signal(|| false);
-    // let animating_classes = use_memo(move || {
-    //     if is_open() {
-    //         "opacity-100 scale-100"
-    //     } else {
-    //         "opacity-0 scale-0"
-    //     }
-    // });
-
-    let animating_styles = use_memo(move || {
+    let animating_classes = use_memo(move || {
         if is_open() {
-            "opacity: 1"
+            "opacity-100 scale-100"
         } else {
-            "opacity: 0"
+            "opacity-0 scale-95"
         }
     });
+
+    // let animating_styles = use_memo(move || {
+    //     if is_open() {
+    //         "opacity: 1"
+    //     } else {
+    //         "opacity: 0"
+    //     }
+    // });
 
     rsx! {
         DropdownMenu {
@@ -223,8 +223,8 @@ fn UserMenu() -> Element {
             DropdownMenuContent {
                 id: "foo-bar-bazzy",
                 //class: "opacity-0 scale-95 hover:opacity-100 hover:scale-100 absolute left-0 w-56 origin-top-right bg-white rounded-md px-1 py-1 shadow-lg ring-1 ring-black/5 focus:outline-none",
-                //class: format!("absolute left-0 w-56 origin-top-right bg-white rounded-md px-1 py-1 shadow-lg ring-1 ring-black/5 focus:outline-none"),
-                class: "my-menu absolute left-0 w-56 origin-top-right bg-white rounded-md px-1 py-1 shadow-lg ring-1 ring-black/5 focus:outline-none",
+                class: format!("{animating_classes} absolute left-0 w-56 origin-top-right bg-white rounded-md px-1 py-1 shadow-lg ring-1 ring-black/5 focus:outline-none"),
+                //class: "absolute left-0 w-56 origin-top-right bg-white rounded-md px-1 py-1 shadow-lg ring-1 ring-black/5 focus:outline-none",
                 style: "transition-property: all; transition-duration: 300ms;",
                 //style: format!("{animating_styles} transition-property: all; transition-duration: 1s;"),
                 DropdownMenuItem {
