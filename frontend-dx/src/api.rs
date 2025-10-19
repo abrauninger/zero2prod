@@ -6,6 +6,23 @@ static BASE_URL: LazyLock<String> = LazyLock::new(|| {
     web_sys::window().unwrap().location().origin().unwrap()
 });
 
+pub async fn get_username() -> Option<String> {
+    match reqwest::get(format!("{}/api/admin/user", *BASE_URL)).await {
+        Ok(response) => {
+            // When the user is not logged in, the API returns HTTP 401 (Unauthorized)
+            if response.status().is_success() {
+                response.text().await.ok()
+            } else {
+                None
+            }
+        }
+        Err(e) => {
+            tracing::error!("/api/admin/user returned an error: {e:?}");
+            None
+        }
+    }
+}
+
 pub async fn add_subscriber(
     name: String,
     email: String,

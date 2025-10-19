@@ -2,11 +2,10 @@ mod api;
 
 use dioxus::prelude::*;
 use dioxus_primitives::dropdown_menu::{
-    self, DropdownMenu, DropdownMenuContent, DropdownMenuContentProps, DropdownMenuItem,
-    DropdownMenuItemProps, DropdownMenuProps, DropdownMenuTrigger, DropdownMenuTriggerProps,
+    DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger,
 };
 
-use crate::api::{add_subscriber, Message};
+use crate::api::{add_subscriber, get_username, Message};
 
 #[derive(Debug, Clone, Routable, PartialEq)]
 #[rustfmt::skip]
@@ -25,8 +24,16 @@ fn main() {
     dioxus::launch(App);
 }
 
+static USERNAME: GlobalSignal<Option<String>> = Global::new(|| None);
+
 #[component]
 fn App() -> Element {
+    use_effect(move || {
+        spawn(async move {
+            *USERNAME.write() = get_username().await;
+        });
+    });
+
     rsx! {
         document::Link { rel: "icon", href: FAVICON }
         document::Link { rel: "stylesheet", href: MAIN_CSS } document::Link { rel: "stylesheet", href: TAILWIND_CSS }
@@ -43,7 +50,7 @@ fn SubscribeForm() -> Element {
     let mut info_message: Signal<Option<Message>> = use_signal(|| None);
 
     rsx! {
-        UserMenu {}
+        UserMenu { }
         AppForm {
             heading: "Welcome to our newsletter",
             onsubmit: move || async move {
@@ -189,8 +196,22 @@ fn Navbar() -> Element {
 }
 
 #[component]
-#[allow(clippy::unnecessary_cast)]
 fn UserMenu() -> Element {
+    rsx! {
+        if let Some(_username) = USERNAME() {
+            UserMenuLoggedIn {  }
+        } else {
+            a {
+              class: "text-gray-900 hover:bg-gray-400 rounded-md px-2 py-2 cursor-default",
+              "Log in"
+            }
+        }
+    }
+}
+
+#[component]
+#[allow(clippy::unnecessary_cast)]
+fn UserMenuLoggedIn() -> Element {
     let mut is_open = use_signal(|| false);
 
     // The entrance/exit animations for the menu are triggered by the 'is_open' signal, but if we use
@@ -240,6 +261,7 @@ fn UserMenu() -> Element {
     });
 
     rsx! {
+        p { {USERNAME()} }
         DropdownMenu {
             on_open_change: move |value| {
                 is_open.set(value);
