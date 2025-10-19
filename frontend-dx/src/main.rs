@@ -13,6 +13,9 @@ enum Route {
     #[layout(Navbar)]
     #[route("/")]
     SubscribeForm {},
+
+    #[route("/login")]
+    LoginForm {},
 }
 
 const FAVICON: Asset = asset!("/assets/favicon.ico");
@@ -81,6 +84,13 @@ fn SubscribeForm() -> Element {
                 info: info_message
             }
         }
+    }
+}
+
+#[component]
+fn LoginForm() -> Element {
+    rsx! {
+        "TODO: Login form"
     }
 }
 
@@ -202,8 +212,9 @@ fn UserMenu() -> Element {
             UserMenuLoggedIn {  }
         } else {
             a {
-              class: "text-gray-900 hover:bg-gray-400 rounded-md px-2 py-2 cursor-default",
-              "Log in"
+                onclick: |_| { navigator().push(Route::LoginForm {}); },
+                class: "text-gray-900 hover:bg-gray-400 rounded-md px-2 py-2 cursor-default",
+                "Log in"
             }
         }
     }
