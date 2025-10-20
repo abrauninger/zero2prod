@@ -89,8 +89,44 @@ fn SubscribeForm() -> Element {
 
 #[component]
 fn LoginForm() -> Element {
+    let username = use_signal(|| "".to_string());
+    let password = use_signal(|| "".to_string());
+
+    // TODO: De-dupe this with SubscribeForm?
+    let error_message: Signal<Option<Message>> = use_signal(|| None);
+    let info_message: Signal<Option<Message>> = use_signal(|| None);
+
     rsx! {
-        "TODO: Login form"
+        AppForm {
+            heading: "Log in",
+            onsubmit: || {},
+
+            FormTextField {
+                value: username,
+                name: "username",
+                label: "Username",
+                autocomplete: "username",
+                placeholder: "Enter your username",
+            }
+
+            FormTextField {
+                value: password,
+                name: "password",
+                field_type: "password",
+                label: "Password",
+                autocomplete: "password",
+                placeholder: "Enter your password",
+            }
+
+            SubmitButton {
+                "Log in"
+            }
+
+            MessageDisplay {
+                error: error_message,
+                info: info_message
+            }
+        }
     }
 }
 
@@ -129,6 +165,7 @@ fn AppHeading(children: Element) -> Element {
 #[component]
 fn FormTextField(
     value: Signal<String>,
+    #[props(default = "text".to_string())] field_type: String,
     label: String,
     name: String,
     autocomplete: String,
@@ -145,9 +182,10 @@ fn FormTextField(
                 id: name.clone(),
                 name,
                 value: "{value}",
-                oninput: move |e| value.set(e.value()),
+                type: field_type,
                 placeholder,
                 autocomplete,
+                oninput: move |e| value.set(e.value()),
                 class: "rounded mt-1 block w-full"
             }
         }
