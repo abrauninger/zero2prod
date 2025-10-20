@@ -5,7 +5,7 @@ use dioxus_primitives::dropdown_menu::{
     DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger,
 };
 
-use crate::api::{add_subscriber, get_username, Message};
+use crate::api::{add_subscriber, get_username, login, Message};
 
 #[derive(Debug, Clone, Routable, PartialEq)]
 #[rustfmt::skip]
@@ -93,13 +93,18 @@ fn LoginForm() -> Element {
     let password = use_signal(|| "".to_string());
 
     // TODO: De-dupe this with SubscribeForm?
-    let error_message: Signal<Option<Message>> = use_signal(|| None);
-    let info_message: Signal<Option<Message>> = use_signal(|| None);
+    let mut error_message: Signal<Option<Message>> = use_signal(|| None);
+    let mut info_message: Signal<Option<Message>> = use_signal(|| None);
 
     rsx! {
         AppForm {
             heading: "Log in",
-            onsubmit: || {},
+            onsubmit: move || async move {
+                if login(username(), password(), &mut error_message, &mut info_message).await {
+                    // TODO: Navigate to a better place after successful login!
+                    navigator().push(Route::SubscribeForm {});
+                }
+            },
 
             FormTextField {
                 value: username,

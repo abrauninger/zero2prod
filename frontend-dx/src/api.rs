@@ -37,12 +37,10 @@ pub async fn add_subscriber(
 
     match call_api("/api/subscriptions", SubscribeApiParams { name, email }).await {
         Ok(()) => {
-            tracing::info!("call_api returned Ok");
             error_message.set(None);
             info_message.set(Some(Message::AddSubscriberSucceeded));
         }
         Err(error) => {
-            tracing::info!("call_api returned Err");
             let message = if let ApiError::ServerError(m) = error {
                 m
             } else {
@@ -50,6 +48,37 @@ pub async fn add_subscriber(
             };
             error_message.set(Some(message));
             info_message.set(None);
+        }
+    }
+}
+
+pub async fn login(
+    username: String,
+    password: String,
+    error_message: &mut Signal<Option<Message>>,
+    info_message: &mut Signal<Option<Message>>,
+) -> bool {
+    #[derive(serde::Serialize)]
+    struct LoginApiParams {
+        username: String,
+        password: String,
+    }
+
+    match call_api("/api/login", LoginApiParams { username, password }).await {
+        Ok(()) => {
+            error_message.set(None);
+            info_message.set(None);
+            true
+        }
+        Err(error) => {
+            let message = if let ApiError::ServerError(m) = error {
+                m
+            } else {
+                Message::InternalError
+            };
+            error_message.set(Some(message));
+            info_message.set(None);
+            false
         }
     }
 }
