@@ -114,7 +114,7 @@ fn LoginForm() -> Element {
                     *USERNAME.write() = Some(get_username().await?);
 
                     // TODO: Navigate to a better place after successful login!
-                    navigator().push(Route::SubscribeForm {});
+                    navigate_to(Route::SubscribeForm {});
 
                     Ok(())
                 }).await;
@@ -269,7 +269,7 @@ fn UserMenu() -> Element {
             UserMenuLoggedIn {  }
         } else {
             a {
-                onclick: |_| { navigator().push(Route::LoginForm {}); },
+                onclick: |_| { navigate_to(Route::LoginForm {}); },
                 class: "text-gray-900 hover:bg-gray-400 rounded-md px-2 py-2 cursor-default",
                 "Log in"
             }
@@ -397,4 +397,12 @@ async fn call_api<Output, F: Future<Output = Result<Output, ApiError>>>(
             None
         }
     }
+}
+
+fn navigate_to(route: Route) {
+    // Clear the displayed messages any time we go somewhere else.
+    let mut messages = MESSAGES.write();
+    messages.error = None;
+    messages.info = None;
+    navigator().push(route);
 }
