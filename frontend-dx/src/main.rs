@@ -5,7 +5,7 @@ use dioxus_primitives::dropdown_menu::{
     DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger,
 };
 
-use crate::api::{add_subscriber, get_username, login, Message};
+use crate::api::{add_subscriber, get_username, login, logout, Message};
 
 #[derive(Debug, Clone, Routable, PartialEq)]
 #[rustfmt::skip]
@@ -101,8 +101,16 @@ fn LoginForm() -> Element {
             heading: "Log in",
             onsubmit: move || async move {
                 if login(username(), password(), &mut error_message, &mut info_message).await {
-                    // TODO: Navigate to a better place after successful login!
-                    navigator().push(Route::SubscribeForm {});
+                    // Even though we already know the username, fetch it again after we've successfully
+                    // logged in.  (In the future we'll fetch the user's name or initials here.)
+                    if let Some(username) = get_username().await {
+                        *USERNAME.write() = Some(username);
+                        // TODO: Navigate to a better place after successful login!
+                        navigator().push(Route::SubscribeForm {});
+                    } else {
+                        tracing::error!("Unable to fetch username after a successful login");
+                        error_message.set(Some(Message::InternalError));
+                    }
                 }
             },
 
@@ -345,6 +353,15 @@ fn UserMenuLoggedIn() -> Element {
                         tracing::info!("Second menu item clicked");
                     },
                     "Second item"
+                }
+                DropdownMenuItem {
+                    class: "px-2 py-2 text-md rounded-md text-gray-900 hover:bg-blue-500 hover:text-white",
+                    index: 1 as usize,
+                    value: "",
+                    on_select: async |_value: String| {
+                        logout().await;
+                    },
+                    "Log out"
                 }
             }
         }

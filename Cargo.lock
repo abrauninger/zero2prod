@@ -2362,6 +2362,7 @@ dependencies = [
  "dioxus-primitives",
  "reqwest",
  "serde",
+ "serde_json",
  "thiserror 2.0.17",
  "tracing",
  "web-sys",

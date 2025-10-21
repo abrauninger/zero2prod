@@ -1,5 +1,8 @@
 use dioxus::signals::{Signal, WritableExt};
-use std::{fmt::Display, sync::LazyLock};
+use serde::de::DeserializeOwned;
+use std::{fmt::Debug, fmt::Display, sync::LazyLock};
+
+use crate::USERNAME;
 
 static BASE_URL: LazyLock<String> = LazyLock::new(|| {
     // https://github.com/seanmonstar/reqwest/issues/1433
@@ -7,11 +10,30 @@ static BASE_URL: LazyLock<String> = LazyLock::new(|| {
 });
 
 pub async fn get_username() -> Option<String> {
+    #[derive(serde::Deserialize, Debug)]
+    struct GetUsernameApiResponse {
+        username: String,
+    }
+
+    // impl JsonApiResponse for LoginApiResponse {}
+
     match reqwest::get(format!("{}/api/admin/user", *BASE_URL)).await {
         Ok(response) => {
             // When the user is not logged in, the API returns HTTP 401 (Unauthorized)
             if response.status().is_success() {
-                response.text().await.ok()
+                // TODO: We might need a more comprehensive approach for how to bubble up error messages.
+                // Do we want a way to show an unexpected error to the user anywhere in the app, or only
+                // in certain places (like form entry)?
+                match response.json::<GetUsernameApiResponse>().await {
+                    Ok(response) => Some(response.username),
+                    Err(e) => {
+                        // TODO: Should we use anyhow::error here?
+                        tracing::error!(
+                            "Unable to read response from /api/admin/user API.  Error: {e:?}"
+                        );
+                        None
+                    }
+                }
             } else {
                 None
             }
@@ -64,6 +86,13 @@ pub async fn login(
         password: String,
     }
 
+    // #[derive(serde::Deserialize, Debug)]
+    // struct LoginApiResponse {
+    //     username: String,
+    // }
+
+    // impl JsonApiResponse for LoginApiResponse {}
+
     match call_api("/api/login", LoginApiParams { username, password }).await {
         Ok(()) => {
             error_message.set(None);
@@ -78,12 +107,31 @@ pub async fn login(
             };
             error_message.set(Some(message));
             info_message.set(None);
+            *USERNAME.write() = None;
             false
         }
     }
 }
 
-async fn call_api(relative_url: &str, input: impl serde::Serialize) -> Result<(), ApiError> {
+// TODO: Any reason to return bool?
+pub async fn logout() -> bool {
+    // TODO: De-dupe with 'get_username'?  'call_api_with_post' etc.?  Or maybe something generic?
+    match reqwest::get(format!("{}/api/admin/logout", *BASE_URL)).await {
+        Ok(_) => {
+            *USERNAME.write() = None;
+            true
+        }
+        Err(e) => {
+            tracing::error!("/api/admin/logout returned an error: {e:?}");
+            false
+        }
+    }
+}
+
+async fn call_api<Output: ApiResponse + Debug>(
+    relative_url: &str,
+    input: impl serde::Serialize,
+) -> Result<Output, ApiError> {
     let url = format!("{}{}", *BASE_URL, relative_url);
 
     // TODO: Use a tracing span
@@ -101,15 +149,27 @@ async fn call_api(relative_url: &str, input: impl serde::Serialize) -> Result<()
             tracing::info!("Response status: {status}");
 
             if status.is_success() {
-                if let Ok(text) = response.text().await {
-                    tracing::info!("Response text: \"{text}\"");
-                } else {
-                    tracing::info!("Couldn't read response text");
-                }
+                match response.text().await {
+                    Ok(text) => {
+                        tracing::info!("Response text: {text}");
 
-                //let output = response.json::<Output>().await?;
-                //Ok(output)
-                Ok(())
+                        let output: serde_json::Result<Output> = Output::from_response_text(text);
+                        match output {
+                            Ok(output) => {
+                                tracing::info!("Response output: {output:?}");
+                                Ok(output)
+                            }
+                            Err(e) => {
+                                tracing::error!("Unable to read response object");
+                                Err(e.into())
+                            }
+                        }
+                    }
+                    Err(e) => {
+                        tracing::error!("Unable to read output object from response");
+                        Err(e.into())
+                    }
+                }
             } else {
                 let error_response = response.json::<ApiErrorResponse>().await?;
                 tracing::info!("Error response: {error_response:?}");
@@ -128,6 +188,28 @@ async fn call_api(relative_url: &str, input: impl serde::Serialize) -> Result<()
     }
 }
 
+trait ApiResponse {
+    fn from_response_text(response_text: String) -> Result<Self, serde_json::Error>
+    where
+        Self: Sized;
+}
+
+impl<T: JsonApiResponse + DeserializeOwned> ApiResponse for T {
+    fn from_response_text(response_text: String) -> Result<Self, serde_json::Error> {
+        tracing::info!("'from_response_text' calling 'serde_json::from_str");
+        serde_json::from_str(&response_text)
+    }
+}
+
+impl ApiResponse for () {
+    fn from_response_text(_response_text: String) -> Result<Self, serde_json::Error> {
+        tracing::info!("'from_response_text' for '()' returning '()");
+        Ok(())
+    }
+}
+
+trait JsonApiResponse {}
+
 #[derive(Debug, thiserror::Error)]
 enum ApiError {
     #[error("Server returned error: '{0}'")]
@@ -135,6 +217,9 @@ enum ApiError {
 
     #[error("Error making HTTP request error")]
     ReqwestError(#[from] reqwest::Error),
+
+    #[error("Error decoding HTTP response")]
+    JsonError(#[from] serde_json::Error),
 
     #[error("Unexpected error")]
     Unexpected,
