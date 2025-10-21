@@ -1,5 +1,4 @@
 use dioxus::signals::{Signal, WritableExt};
-use serde::de::DeserializeOwned;
 use std::{fmt::Debug, fmt::Display, sync::LazyLock};
 
 use crate::USERNAME;
@@ -14,8 +13,6 @@ pub async fn get_username() -> Option<String> {
     struct GetUsernameApiResponse {
         username: String,
     }
-
-    // impl JsonApiResponse for LoginApiResponse {}
 
     match reqwest::get(format!("{}/api/admin/user", *BASE_URL)).await {
         Ok(response) => {
@@ -86,13 +83,6 @@ pub async fn login(
         password: String,
     }
 
-    // #[derive(serde::Deserialize, Debug)]
-    // struct LoginApiResponse {
-    //     username: String,
-    // }
-
-    // impl JsonApiResponse for LoginApiResponse {}
-
     match call_api("/api/login", LoginApiParams { username, password }).await {
         Ok(()) => {
             error_message.set(None);
@@ -115,7 +105,6 @@ pub async fn login(
 
 // TODO: Any reason to return bool?
 pub async fn logout() -> bool {
-    // TODO: De-dupe with 'get_username'?  'call_api_with_post' etc.?  Or maybe something generic?
     match reqwest::get(format!("{}/api/admin/logout", *BASE_URL)).await {
         Ok(_) => {
             *USERNAME.write() = None;
@@ -128,10 +117,7 @@ pub async fn logout() -> bool {
     }
 }
 
-async fn call_api<Output: ApiResponse + Debug>(
-    relative_url: &str,
-    input: impl serde::Serialize,
-) -> Result<Output, ApiError> {
+async fn call_api(relative_url: &str, input: impl serde::Serialize) -> Result<(), ApiError> {
     let url = format!("{}{}", *BASE_URL, relative_url);
 
     // TODO: Use a tracing span
@@ -152,18 +138,7 @@ async fn call_api<Output: ApiResponse + Debug>(
                 match response.text().await {
                     Ok(text) => {
                         tracing::info!("Response text: {text}");
-
-                        let output: serde_json::Result<Output> = Output::from_response_text(text);
-                        match output {
-                            Ok(output) => {
-                                tracing::info!("Response output: {output:?}");
-                                Ok(output)
-                            }
-                            Err(e) => {
-                                tracing::error!("Unable to read response object");
-                                Err(e.into())
-                            }
-                        }
+                        Ok(())
                     }
                     Err(e) => {
                         tracing::error!("Unable to read output object from response");
@@ -187,28 +162,6 @@ async fn call_api<Output: ApiResponse + Debug>(
         }
     }
 }
-
-trait ApiResponse {
-    fn from_response_text(response_text: String) -> Result<Self, serde_json::Error>
-    where
-        Self: Sized;
-}
-
-impl<T: JsonApiResponse + DeserializeOwned> ApiResponse for T {
-    fn from_response_text(response_text: String) -> Result<Self, serde_json::Error> {
-        tracing::info!("'from_response_text' calling 'serde_json::from_str");
-        serde_json::from_str(&response_text)
-    }
-}
-
-impl ApiResponse for () {
-    fn from_response_text(_response_text: String) -> Result<Self, serde_json::Error> {
-        tracing::info!("'from_response_text' for '()' returning '()");
-        Ok(())
-    }
-}
-
-trait JsonApiResponse {}
 
 #[derive(Debug, thiserror::Error)]
 enum ApiError {
