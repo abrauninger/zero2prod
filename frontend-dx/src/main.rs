@@ -1,11 +1,13 @@
 mod api;
 
+use std::future::Future;
+
 use dioxus::prelude::*;
 use dioxus_primitives::dropdown_menu::{
     DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger,
 };
 
-use crate::api::{add_subscriber, get_username, login, logout, Message};
+use crate::api::{add_subscriber, get_username, login, logout, ApiError, Message};
 
 #[derive(Debug, Clone, Routable, PartialEq)]
 #[rustfmt::skip]
@@ -28,12 +30,16 @@ fn main() {
 }
 
 static USERNAME: GlobalSignal<Option<String>> = Global::new(|| None);
+static MESSAGES: GlobalSignal<Messages> = Global::new(|| Messages {
+    error: None,
+    info: None,
+});
 
 #[component]
 fn App() -> Element {
     use_effect(move || {
         spawn(async move {
-            *USERNAME.write() = get_username().await;
+            *USERNAME.write() = get_username().await.ok();
         });
     });
 
@@ -49,15 +55,12 @@ fn SubscribeForm() -> Element {
     let name = use_signal(|| "".to_string());
     let email = use_signal(|| "".to_string());
 
-    let mut error_message: Signal<Option<Message>> = use_signal(|| None);
-    let mut info_message: Signal<Option<Message>> = use_signal(|| None);
-
     rsx! {
         UserMenu { }
         AppForm {
             heading: "Welcome to our newsletter",
             onsubmit: move || async move {
-                add_subscriber(name(), email(), &mut error_message, &mut info_message).await;
+                call_api(|| add_subscriber(name(), email())).await;
             },
             p {
                 "To subscribe to our newsletter, enter your information here."
@@ -79,10 +82,7 @@ fn SubscribeForm() -> Element {
             SubmitButton {
                 "Subscribe"
             }
-            MessageDisplay {
-                error: error_message,
-                info: info_message
-            }
+            MessageDisplay {}
         }
     }
 }
@@ -92,26 +92,22 @@ fn LoginForm() -> Element {
     let username = use_signal(|| "".to_string());
     let password = use_signal(|| "".to_string());
 
-    // TODO: De-dupe this with SubscribeForm?
-    let mut error_message: Signal<Option<Message>> = use_signal(|| None);
-    let mut info_message: Signal<Option<Message>> = use_signal(|| None);
-
     rsx! {
         AppForm {
             heading: "Log in",
             onsubmit: move || async move {
-                if login(username(), password(), &mut error_message, &mut info_message).await {
+                call_api(async || {
+                    login(username(), password()).await?;
+
                     // Even though we already know the username, fetch it again after we've successfully
                     // logged in.  (In the future we'll fetch the user's name or initials here.)
-                    if let Some(username) = get_username().await {
-                        *USERNAME.write() = Some(username);
-                        // TODO: Navigate to a better place after successful login!
-                        navigator().push(Route::SubscribeForm {});
-                    } else {
-                        tracing::error!("Unable to fetch username after a successful login");
-                        error_message.set(Some(Message::InternalError));
-                    }
-                }
+                    *USERNAME.write() = Some(get_username().await?);
+
+                    // TODO: Navigate to a better place after successful login!
+                    navigator().push(Route::SubscribeForm {});
+
+                    Ok(())
+                }).await;
             },
 
             FormTextField {
@@ -135,10 +131,7 @@ fn LoginForm() -> Element {
                 "Log in"
             }
 
-            MessageDisplay {
-                error: error_message,
-                info: info_message
-            }
+            MessageDisplay {}
         }
     }
 }
@@ -219,25 +212,28 @@ fn SubmitButton(children: Element) -> Element {
 }
 
 #[component]
-fn MessageDisplay(
-    #[props(!optional)] error: ReadSignal<Option<Message>>,
-    #[props(!optional)] info: ReadSignal<Option<Message>>,
-) -> Element {
+fn MessageDisplay() -> Element {
     rsx! {
-        if let Some(ref message) = *error.read() {
+        if let Some(ref message) = MESSAGES.read().error {
             div {
                 class: "text-red-900 bg-red-200 border border-solid border-red-900 p-2 mt-2",
                 {message.to_string()}
             }
         }
 
-        if let Some(ref message) = *info.read() {
+        if let Some(ref message) = MESSAGES.read().info {
             div {
                 class: "text-green-900 bg-green-200 border border-solid border-green-900 p-2 mt-2",
                 {message.to_string()}
             }
         }
     }
+}
+
+struct Messages {
+    // TODO: Should we have a list of messages of various types?
+    error: Option<Message>,
+    info: Option<Message>,
 }
 
 /// Shared navbar component.
@@ -364,6 +360,34 @@ fn UserMenuLoggedIn() -> Element {
                     "Log out"
                 }
             }
+        }
+    }
+}
+
+async fn call_api<Output, F: Future<Output = Result<Output, ApiError>>>(
+    api: impl FnOnce() -> F,
+) -> Option<Output> {
+    match api().await {
+        Ok(output) => {
+            tracing::info!("'call_api' sees an 'Ok' result; clearing MESSAGES");
+            let mut messages = MESSAGES.write();
+            messages.error = None;
+            messages.info = None;
+            Some(output)
+        }
+        Err(api_error) => {
+            tracing::info!("'call_api' sees an 'Err' result; setting MESSAGES.error");
+            let message = if let ApiError::ServerError(message) = api_error {
+                message
+            } else {
+                Message::InternalError
+            };
+
+            let mut messages = MESSAGES.write();
+            // TODO: Set info message when appropriate
+            messages.error = Some(message);
+            messages.info = None;
+            None
         }
     }
 }

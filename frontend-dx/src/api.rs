@@ -1,4 +1,3 @@
-use dioxus::signals::{Signal, WritableExt};
 use std::{fmt::Debug, fmt::Display, sync::LazyLock};
 
 use crate::USERNAME;
@@ -8,99 +7,44 @@ static BASE_URL: LazyLock<String> = LazyLock::new(|| {
     web_sys::window().unwrap().location().origin().unwrap()
 });
 
-pub async fn get_username() -> Option<String> {
+pub async fn get_username() -> Result<String, ApiError> {
     #[derive(serde::Deserialize, Debug)]
     struct GetUsernameApiResponse {
         username: String,
     }
 
-    match reqwest::get(format!("{}/api/admin/user", *BASE_URL)).await {
-        Ok(response) => {
-            // When the user is not logged in, the API returns HTTP 401 (Unauthorized)
-            if response.status().is_success() {
-                // TODO: We might need a more comprehensive approach for how to bubble up error messages.
-                // Do we want a way to show an unexpected error to the user anywhere in the app, or only
-                // in certain places (like form entry)?
-                match response.json::<GetUsernameApiResponse>().await {
-                    Ok(response) => Some(response.username),
-                    Err(e) => {
-                        // TODO: Should we use anyhow::error here?
-                        tracing::error!(
-                            "Unable to read response from /api/admin/user API.  Error: {e:?}"
-                        );
-                        None
-                    }
-                }
-            } else {
-                None
-            }
-        }
-        Err(e) => {
-            tracing::error!("/api/admin/user returned an error: {e:?}");
-            None
-        }
+    let response = reqwest::get(format!("{}/api/admin/user", *BASE_URL)).await?;
+
+    // When the user is not logged in, the API returns HTTP 401 (Unauthorized)
+    if response.status().is_success() {
+        // TODO: We might need a more comprehensive approach for how to bubble up error messages.
+        // Do we want a way to show an unexpected error to the user anywhere in the app, or only
+        // in certain places (like form entry)?
+        let response = response.json::<GetUsernameApiResponse>().await?;
+        Ok(response.username)
+    } else {
+        Err(ApiError::Unexpected)
     }
 }
 
-pub async fn add_subscriber(
-    name: String,
-    email: String,
-    error_message: &mut Signal<Option<Message>>,
-    info_message: &mut Signal<Option<Message>>,
-) {
+pub async fn add_subscriber(name: String, email: String) -> Result<(), ApiError> {
     #[derive(serde::Serialize)]
     struct SubscribeApiParams {
         name: String,
         email: String,
     }
 
-    match call_api("/api/subscriptions", SubscribeApiParams { name, email }).await {
-        Ok(()) => {
-            error_message.set(None);
-            info_message.set(Some(Message::AddSubscriberSucceeded));
-        }
-        Err(error) => {
-            let message = if let ApiError::ServerError(m) = error {
-                m
-            } else {
-                Message::InternalError
-            };
-            error_message.set(Some(message));
-            info_message.set(None);
-        }
-    }
+    call_api("/api/subscriptions", SubscribeApiParams { name, email }).await
 }
 
-pub async fn login(
-    username: String,
-    password: String,
-    error_message: &mut Signal<Option<Message>>,
-    info_message: &mut Signal<Option<Message>>,
-) -> bool {
+pub async fn login(username: String, password: String) -> Result<(), ApiError> {
     #[derive(serde::Serialize)]
     struct LoginApiParams {
         username: String,
         password: String,
     }
 
-    match call_api("/api/login", LoginApiParams { username, password }).await {
-        Ok(()) => {
-            error_message.set(None);
-            info_message.set(None);
-            true
-        }
-        Err(error) => {
-            let message = if let ApiError::ServerError(m) = error {
-                m
-            } else {
-                Message::InternalError
-            };
-            error_message.set(Some(message));
-            info_message.set(None);
-            *USERNAME.write() = None;
-            false
-        }
-    }
+    call_api("/api/login", LoginApiParams { username, password }).await
 }
 
 // TODO: Any reason to return bool?
@@ -164,7 +108,7 @@ async fn call_api(relative_url: &str, input: impl serde::Serialize) -> Result<()
 }
 
 #[derive(Debug, thiserror::Error)]
-enum ApiError {
+pub enum ApiError {
     #[error("Server returned error: '{0}'")]
     ServerError(Message),
 
@@ -191,7 +135,7 @@ pub enum Message {
     UnableToSendConfirmationEmail,
     PasswordCheckFailed,
     NewPasswordToShort,
-    AddSubscriberSucceeded,
+    AddSubscriberSucceeded, // TODO: Use this message
 }
 
 impl Message {
