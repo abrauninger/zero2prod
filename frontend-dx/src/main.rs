@@ -60,7 +60,17 @@ fn SubscribeForm() -> Element {
         AppForm {
             heading: "Welcome to our newsletter",
             onsubmit: move || async move {
-                call_api(|| add_subscriber(name(), email())).await;
+                call_api(async || {
+                    let result = add_subscriber(name(), email()).await;
+
+                    MESSAGES.write().info = if result.is_ok() {
+                        Some(Message::AddSubscriberSucceeded)
+                    } else {
+                        None
+                    };
+
+                    result
+                }).await;
             },
             p {
                 "To subscribe to our newsletter, enter your information here."
@@ -367,12 +377,12 @@ fn UserMenuLoggedIn() -> Element {
 async fn call_api<Output, F: Future<Output = Result<Output, ApiError>>>(
     api: impl FnOnce() -> F,
 ) -> Option<Output> {
+    MESSAGES.write().info = None;
+    MESSAGES.write().error = None;
+
     match api().await {
         Ok(output) => {
-            tracing::info!("'call_api' sees an 'Ok' result; clearing MESSAGES");
-            let mut messages = MESSAGES.write();
-            messages.error = None;
-            messages.info = None;
+            tracing::info!("'call_api' sees an 'Ok' result");
             Some(output)
         }
         Err(api_error) => {
@@ -383,10 +393,7 @@ async fn call_api<Output, F: Future<Output = Result<Output, ApiError>>>(
                 Message::InternalError
             };
 
-            let mut messages = MESSAGES.write();
-            // TODO: Set info message when appropriate
-            messages.error = Some(message);
-            messages.info = None;
+            MESSAGES.write().error = Some(message);
             None
         }
     }
