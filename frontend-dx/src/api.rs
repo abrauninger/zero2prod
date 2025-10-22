@@ -47,6 +47,29 @@ pub async fn login(username: String, password: String) -> Result<(), ApiError> {
     call_api("/api/login", LoginApiParams { username, password }).await
 }
 
+pub async fn change_password(
+    current_password: String,
+    new_password: String,
+    new_password_check: String,
+) -> Result<(), ApiError> {
+    #[derive(serde::Serialize)]
+    struct ChangePasswordApiParams {
+        current_password: String,
+        new_password: String,
+        new_password_check: String,
+    }
+
+    call_api(
+        "/api/admin/password",
+        ChangePasswordApiParams {
+            current_password,
+            new_password,
+            new_password_check,
+        },
+    )
+    .await
+}
+
 // TODO: Any reason to return bool?
 pub async fn logout() -> bool {
     match reqwest::get(format!("{}/api/admin/logout", *BASE_URL)).await {

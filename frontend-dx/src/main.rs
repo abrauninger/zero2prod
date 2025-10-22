@@ -8,7 +8,7 @@ use dioxus_primitives::dropdown_menu::{
 };
 use strum::IntoEnumIterator;
 
-use crate::api::{add_subscriber, get_username, login, logout, ApiError, Message};
+use crate::api::{add_subscriber, change_password, get_username, login, logout, ApiError, Message};
 
 #[derive(Debug, Clone, Routable, PartialEq)]
 #[rustfmt::skip]
@@ -19,6 +19,9 @@ enum Route {
 
     #[route("/login")]
     LoginForm {},
+
+    #[route("/admin/password")]
+    ChangePasswordForm {},
 }
 
 const FAVICON: Asset = asset!("/assets/favicon.ico");
@@ -140,6 +143,67 @@ fn LoginForm() -> Element {
 
             SubmitButton {
                 "Log in"
+            }
+
+            MessageDisplay {}
+        }
+    }
+}
+
+#[component]
+fn ChangePasswordForm() -> Element {
+    let current_password = use_signal(|| "".to_string());
+    let new_password = use_signal(|| "".to_string());
+    let new_password_check = use_signal(|| "".to_string());
+
+    rsx! {
+        UserMenu { }
+        AppForm {
+            heading: "Change password",
+            onsubmit: move || async move {
+                call_api(async || {
+                    change_password(current_password(), new_password(), new_password_check()).await?;
+
+                    // // Even though we already know the username, fetch it again after we've successfully
+                    // // logged in.  (In the future we'll fetch the user's name or initials here.)
+                    // *USERNAME.write() = Some(get_username().await?);
+
+                    // // TODO: Navigate to a better place after successful login!
+                    // navigate_to(Route::SubscribeForm {});
+
+                    Ok(())
+                }).await;
+            },
+
+            FormTextField {
+                value: current_password,
+                name: "current_password",
+                field_type: "password",
+                label: "Current password",
+                autocomplete: "password",
+                placeholder: "Enter current password",
+            }
+
+            FormTextField {
+                value: new_password,
+                name: "new_password",
+                field_type: "password",
+                label: "New password",
+                autocomplete: "password",
+                placeholder: "Enter new password",
+            }
+
+            FormTextField {
+                value: new_password_check,
+                name: "new_password_check",
+                field_type: "password",
+                label: "Confirm new password",
+                autocomplete: "password",
+                placeholder: "Enter new password again",
+            }
+
+            SubmitButton {
+                "Change password"
             }
 
             MessageDisplay {}
@@ -341,19 +405,19 @@ fn UserMenuLoggedIn() -> Element {
 
     #[derive(Clone, Copy, PartialEq, strum_macros::Display, strum_macros::EnumIter)]
     enum Command {
-        #[strum(to_string = "First item")]
-        FirstItem,
+        #[strum(to_string = "Subscribe to newsletter")]
+        Subscribe,
 
-        #[strum(to_string = "Second item")]
-        SecondItem,
+        #[strum(to_string = "Change password")]
+        ChangePassword,
 
         #[strum(to_string = "Log out")]
         LogOut,
     }
 
     let on_select = use_callback(|command: Command| match command {
-        Command::FirstItem => tracing::info!("First menu item clicked"),
-        Command::SecondItem => tracing::info!("Second menu item clicked"),
+        Command::Subscribe => navigate_to(Route::SubscribeForm {}),
+        Command::ChangePassword => navigate_to(Route::ChangePasswordForm {}),
         Command::LogOut => {
             spawn(async move {
                 logout().await;
