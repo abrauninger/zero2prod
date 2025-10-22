@@ -6,6 +6,7 @@ use dioxus::prelude::*;
 use dioxus_primitives::dropdown_menu::{
     DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger,
 };
+use strum::IntoEnumIterator;
 
 use crate::api::{add_subscriber, get_username, login, logout, ApiError, Message};
 
@@ -341,7 +342,7 @@ fn UserMenuLoggedIn() -> Element {
     struct MenuCommand {
         //label: &'static str,
         label: String,
-        //on_select: Callback<(), ()>,
+        on_select: Callback<(), ()>,
     }
 
     // impl MenuCommand {
@@ -353,30 +354,40 @@ fn UserMenuLoggedIn() -> Element {
     //     }
     // }
 
-    let mut commands = use_signal(|| {
-        vec![
-            MenuCommand {
-                label: "First item".to_string(),
-                // on_select: use_callback(|_| {
-                //     tracing::info!("First menu item clicked");
-                // }),
-            },
-            MenuCommand {
-                label: "Second item".to_string(),
-                // on_select: use_callback(|_| {
-                //     tracing::info!("Second menu item clicked");
-                // }),
-            },
-            MenuCommand {
-                label: "Log out".to_string(),
-                // on_select: use_callback(|_| {
-                //     spawn(async move {
-                //         logout().await;
-                //     });
-                // }),
-            },
-        ]
+    #[derive(Clone, Copy, PartialEq, strum_macros::Display, strum_macros::EnumIter)]
+    enum Command {
+        #[strum(to_string = "First item")]
+        FirstItem,
+    }
+
+    let on_select = use_callback(|command: Command| match command {
+        Command::FirstItem => tracing::info!("First menu item clicked"),
     });
+
+    // let mut commands = use_signal(|| {
+    //     vec![
+    //         MenuCommand {
+    //             label: "First item".to_string(),
+    //             on_select: use_callback(|_| {
+    //                 tracing::info!("First menu item clicked");
+    //             }),
+    //         },
+    //         MenuCommand {
+    //             label: "Second item".to_string(),
+    //             on_select: use_callback(|_| {
+    //                 tracing::info!("Second menu item clicked");
+    //             }),
+    //         },
+    //         MenuCommand {
+    //             label: "Log out".to_string(),
+    //             on_select: use_callback(|_| {
+    //                 spawn(async move {
+    //                     logout().await;
+    //                 });
+    //             }),
+    //         },
+    //     ]
+    // });
 
     rsx! {
         DropdownMenu {
@@ -391,16 +402,15 @@ fn UserMenuLoggedIn() -> Element {
             DropdownMenuContent {
                 class: format!("{animated_classes} absolute left-0 w-56 origin-top-right bg-white rounded-md px-1 py-1 shadow-lg ring-1 ring-black/5 focus:outline-none"),
                 style: format!("{animated_styles} transition-property: all; transition-duration: 100ms;"),
-                for item in commands.iter() {
+                for item in Command::iter() {
                     DropdownMenuItem {
                         class: "px-2 py-2 text-md rounded-md text-gray-900 hover:bg-blue-500 hover:text-white",
                         index: 0 as usize, // TODO: Placeholder
-                        value: "",
-                        // on_select: move |_value: String| {
-                        //     item.on_select.call(());
-                        // },
-                        on_select: |_: String| {},
-                        "{item.label}"
+                        value: item,
+                        on_select: move |c: Command| {
+                            on_select(c);
+                        },
+                        {item.to_string()}
                     }
                 }
                 // DropdownMenuItem {
