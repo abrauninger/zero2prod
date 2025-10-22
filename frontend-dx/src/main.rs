@@ -339,55 +339,27 @@ fn UserMenuLoggedIn() -> Element {
         }
     });
 
-    struct MenuCommand {
-        //label: &'static str,
-        label: String,
-        on_select: Callback<(), ()>,
-    }
-
-    // impl MenuCommand {
-    //     fn new(label: &'static str, on_select: impl Fn() -> impl Future<Output = ()> + 'static) -> Self {
-    //         Self {
-    //             label,
-    //             on_select: Box::new(on_select),
-    //         }
-    //     }
-    // }
-
     #[derive(Clone, Copy, PartialEq, strum_macros::Display, strum_macros::EnumIter)]
     enum Command {
         #[strum(to_string = "First item")]
         FirstItem,
+
+        #[strum(to_string = "Second item")]
+        SecondItem,
+
+        #[strum(to_string = "Log out")]
+        LogOut,
     }
 
     let on_select = use_callback(|command: Command| match command {
         Command::FirstItem => tracing::info!("First menu item clicked"),
+        Command::SecondItem => tracing::info!("Second menu item clicked"),
+        Command::LogOut => {
+            spawn(async move {
+                logout().await;
+            });
+        }
     });
-
-    // let mut commands = use_signal(|| {
-    //     vec![
-    //         MenuCommand {
-    //             label: "First item".to_string(),
-    //             on_select: use_callback(|_| {
-    //                 tracing::info!("First menu item clicked");
-    //             }),
-    //         },
-    //         MenuCommand {
-    //             label: "Second item".to_string(),
-    //             on_select: use_callback(|_| {
-    //                 tracing::info!("Second menu item clicked");
-    //             }),
-    //         },
-    //         MenuCommand {
-    //             label: "Log out".to_string(),
-    //             on_select: use_callback(|_| {
-    //                 spawn(async move {
-    //                     logout().await;
-    //                 });
-    //             }),
-    //         },
-    //     ]
-    // });
 
     rsx! {
         DropdownMenu {
