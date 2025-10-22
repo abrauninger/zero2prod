@@ -282,6 +282,16 @@ fn UserMenu() -> Element {
 fn UserMenuLoggedIn() -> Element {
     let mut is_open = use_signal(|| false);
 
+    const BUTTON_HOVER_OPEN_BACKGROUND: &str = "bg-gray-400";
+
+    let button_dynamic_style = use_memo(move || {
+        if is_open() {
+            BUTTON_HOVER_OPEN_BACKGROUND
+        } else {
+            ""
+        }
+    });
+
     // The entrance/exit animations for the menu are triggered by the 'is_open' signal, but if we use
     // 'is_open' directly we'll only run the exit animation; the entrance animation doesn't run
     // because the menu contents would be added to the DOM immediately when 'is_open' becomes true
@@ -329,15 +339,14 @@ fn UserMenuLoggedIn() -> Element {
     });
 
     rsx! {
-        p { {USERNAME()} }
         DropdownMenu {
             on_open_change: move |value| {
                 is_open.set(value);
             },
             class: "relative inline-block",
             DropdownMenuTrigger {
-                class: "flex rounded-md px-1 py-1 font-bold hover:bg-gray-400",
-                "Log in"
+                class: format!("flex rounded-md px-1 py-1 font-bold hover:bg-gray-400 {button_dynamic_style}"),
+                {USERNAME()}
             }
             DropdownMenuContent {
                 class: format!("{animated_classes} absolute left-0 w-56 origin-top-right bg-white rounded-md px-1 py-1 shadow-lg ring-1 ring-black/5 focus:outline-none"),
