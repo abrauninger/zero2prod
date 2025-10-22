@@ -18,6 +18,7 @@ strum = { version = "0.27.2", features = ["strum_macros"] }
 strum_macros = "0.27.2"
 thiserror = "2.0.17"
 tracing = "0.1.41"
+uuid = { version = "1.18.1", features = ["js", "v4"] }
 web-sys = "0.3.81"
 
 [features]

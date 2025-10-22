@@ -7,11 +7,16 @@ use dioxus_primitives::dropdown_menu::{
     DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger,
 };
 use strum::IntoEnumIterator;
+use uuid::Uuid;
 
-use crate::api::{add_subscriber, change_password, get_username, login, logout, ApiError, Message};
+use crate::api::{
+    add_subscriber, change_password, get_username, login, logout, publish_newsletter, ApiError,
+    Message,
+};
 
 #[derive(Debug, Clone, Routable, PartialEq)]
 #[rustfmt::skip]
+#[allow(clippy::enum_variant_names)]
 enum Route {
     #[layout(Navbar)]
     #[route("/")]
@@ -22,6 +27,9 @@ enum Route {
 
     #[route("/admin/password")]
     ChangePasswordForm {},
+
+    #[route("/admin/newsletter")]
+    SendNewsletterForm {},
 }
 
 const FAVICON: Asset = asset!("/assets/favicon.ico");
@@ -163,14 +171,7 @@ fn ChangePasswordForm() -> Element {
             onsubmit: move || async move {
                 call_api(async || {
                     change_password(current_password(), new_password(), new_password_check()).await?;
-
-                    // // Even though we already know the username, fetch it again after we've successfully
-                    // // logged in.  (In the future we'll fetch the user's name or initials here.)
-                    // *USERNAME.write() = Some(get_username().await?);
-
-                    // // TODO: Navigate to a better place after successful login!
-                    // navigate_to(Route::SubscribeForm {});
-
+                    MESSAGES.write().info = Some(Message::PasswordChangeSucceeded);
                     Ok(())
                 }).await;
             },
@@ -204,6 +205,59 @@ fn ChangePasswordForm() -> Element {
 
             SubmitButton {
                 "Change password"
+            }
+
+            MessageDisplay {}
+        }
+    }
+}
+
+#[component]
+fn SendNewsletterForm() -> Element {
+    let title = use_signal(|| "".to_string());
+    let content_text = use_signal(|| "".to_string());
+    let content_html = use_signal(|| "".to_string());
+
+    let idempotency_key = use_signal(|| Uuid::new_v4());
+
+    rsx! {
+        UserMenu { }
+        AppForm {
+            heading: "Publish a new newsletter issue",
+            onsubmit: move || async move {
+                call_api(async || {
+                    publish_newsletter(title(), content_text(), content_html(), idempotency_key()).await?;
+                    MESSAGES.write().info = Some(Message::PublishNewsletterSucceeded);
+                    Ok(())
+                }).await;
+            },
+
+            FormTextField {
+                value: title,
+                name: "title",
+                label: "Title",
+                autocomplete: "title",
+                placeholder: "Enter newsletter title",
+            }
+
+            FormTextField {
+                value: content_text,
+                name: "content_text",
+                label: "Plain-text content",
+                autocomplete: "content",
+                placeholder: "Enter plain-text content",
+            }
+
+            FormTextField {
+                value: content_html,
+                name: "content_html",
+                label: "HTML content",
+                autocomplete: "content",
+                placeholder: "Enter HTML content",
+            }
+
+            SubmitButton {
+                "Publish"
             }
 
             MessageDisplay {}
@@ -408,6 +462,9 @@ fn UserMenuLoggedIn() -> Element {
         #[strum(to_string = "Subscribe to newsletter")]
         Subscribe,
 
+        #[strum(to_string = "Send a newsletter issue")]
+        SendNewsletter,
+
         #[strum(to_string = "Change password")]
         ChangePassword,
 
@@ -417,6 +474,7 @@ fn UserMenuLoggedIn() -> Element {
 
     let on_select = use_callback(|command: Command| match command {
         Command::Subscribe => navigate_to(Route::SubscribeForm {}),
+        Command::SendNewsletter => navigate_to(Route::SendNewsletterForm {}),
         Command::ChangePassword => navigate_to(Route::ChangePasswordForm {}),
         Command::LogOut => {
             spawn(async move {

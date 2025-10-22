@@ -1,5 +1,7 @@
 use std::{fmt::Debug, fmt::Display, sync::LazyLock};
 
+use uuid::Uuid;
+
 use crate::USERNAME;
 
 static BASE_URL: LazyLock<String> = LazyLock::new(|| {
@@ -65,6 +67,32 @@ pub async fn change_password(
             current_password,
             new_password,
             new_password_check,
+        },
+    )
+    .await
+}
+
+pub async fn publish_newsletter(
+    title: String,
+    content_text: String,
+    content_html: String,
+    idempotency_key: Uuid,
+) -> Result<(), ApiError> {
+    #[derive(serde::Serialize)]
+    struct PublishNewsletterApiParams {
+        title: String,
+        content_text: String,
+        content_html: String,
+        idempotency_key: String,
+    }
+
+    call_api(
+        "/api/admin/newsletters",
+        PublishNewsletterApiParams {
+            title,
+            content_text,
+            content_html,
+            idempotency_key: idempotency_key.to_string(),
         },
     )
     .await
@@ -158,7 +186,9 @@ pub enum Message {
     UnableToSendConfirmationEmail,
     PasswordCheckFailed,
     NewPasswordToShort,
-    AddSubscriberSucceeded, // TODO: Use this message
+    PasswordChangeSucceeded,
+    AddSubscriberSucceeded,
+    PublishNewsletterSucceeded,
 }
 
 impl Message {
@@ -186,8 +216,9 @@ impl Message {
             Self::UnableToSendConfirmationEmail => "We were unable to send a confirmation email to that email address.",
             Self::PasswordCheckFailed => "The new passwords you entered do not match each other.",
             Self::NewPasswordToShort => "The new password you have chosen is too short. Your new password must be at least 12 characters long.",
+            Self::PasswordChangeSucceeded => "Your password has been changed.",
             Self::AddSubscriberSucceeded => "You have subscribed to our newsletter. Stay tuned, you're going to love it!",
-            //Self::PublishNewsletterSucceeded => "Your newsletter publish request has been accepted, and emails will go out shortly.",
+            Self::PublishNewsletterSucceeded => "Your newsletter publish request has been accepted, and emails will go out shortly.",
         }
     }
 }
