@@ -338,6 +338,46 @@ fn UserMenuLoggedIn() -> Element {
         }
     });
 
+    struct MenuCommand {
+        //label: &'static str,
+        label: String,
+        //on_select: Callback<(), ()>,
+    }
+
+    // impl MenuCommand {
+    //     fn new(label: &'static str, on_select: impl Fn() -> impl Future<Output = ()> + 'static) -> Self {
+    //         Self {
+    //             label,
+    //             on_select: Box::new(on_select),
+    //         }
+    //     }
+    // }
+
+    let mut commands = use_signal(|| {
+        vec![
+            MenuCommand {
+                label: "First item".to_string(),
+                // on_select: use_callback(|_| {
+                //     tracing::info!("First menu item clicked");
+                // }),
+            },
+            MenuCommand {
+                label: "Second item".to_string(),
+                // on_select: use_callback(|_| {
+                //     tracing::info!("Second menu item clicked");
+                // }),
+            },
+            MenuCommand {
+                label: "Log out".to_string(),
+                // on_select: use_callback(|_| {
+                //     spawn(async move {
+                //         logout().await;
+                //     });
+                // }),
+            },
+        ]
+    });
+
     rsx! {
         DropdownMenu {
             on_open_change: move |value| {
@@ -351,33 +391,45 @@ fn UserMenuLoggedIn() -> Element {
             DropdownMenuContent {
                 class: format!("{animated_classes} absolute left-0 w-56 origin-top-right bg-white rounded-md px-1 py-1 shadow-lg ring-1 ring-black/5 focus:outline-none"),
                 style: format!("{animated_styles} transition-property: all; transition-duration: 100ms;"),
-                DropdownMenuItem {
-                    class: "px-2 py-2 text-md rounded-md text-gray-900 hover:bg-blue-500 hover:text-white",
-                    index: 0 as usize,
-                    value: "",
-                    on_select: |_value: String| {
-                        tracing::info!("First menu item clicked");
-                    },
-                    "First item"
+                for item in commands.iter() {
+                    DropdownMenuItem {
+                        class: "px-2 py-2 text-md rounded-md text-gray-900 hover:bg-blue-500 hover:text-white",
+                        index: 0 as usize, // TODO: Placeholder
+                        value: "",
+                        // on_select: move |_value: String| {
+                        //     item.on_select.call(());
+                        // },
+                        on_select: |_: String| {},
+                        "{item.label}"
+                    }
                 }
-                DropdownMenuItem {
-                    class: "px-2 py-2 text-md rounded-md text-gray-900 hover:bg-blue-500 hover:text-white",
-                    index: 1 as usize,
-                    value: "",
-                    on_select: |_value: String| {
-                        tracing::info!("Second menu item clicked");
-                    },
-                    "Second item"
-                }
-                DropdownMenuItem {
-                    class: "px-2 py-2 text-md rounded-md text-gray-900 hover:bg-blue-500 hover:text-white",
-                    index: 1 as usize,
-                    value: "",
-                    on_select: async |_value: String| {
-                        logout().await;
-                    },
-                    "Log out"
-                }
+                // DropdownMenuItem {
+                //     class: "px-2 py-2 text-md rounded-md text-gray-900 hover:bg-blue-500 hover:text-white",
+                //     index: 0 as usize,
+                //     value: "",
+                //     on_select: |_value: String| {
+                //         tracing::info!("First menu item clicked");
+                //     },
+                //     "First item"
+                // }
+                // DropdownMenuItem {
+                //     class: "px-2 py-2 text-md rounded-md text-gray-900 hover:bg-blue-500 hover:text-white",
+                //     index: 1 as usize,
+                //     value: "",
+                //     on_select: |_value: String| {
+                //         tracing::info!("Second menu item clicked");
+                //     },
+                //     "Second item"
+                // }
+                // DropdownMenuItem {
+                //     class: "px-2 py-2 text-md rounded-md text-gray-900 hover:bg-blue-500 hover:text-white",
+                //     index: 1 as usize,
+                //     value: "",
+                //     on_select: async |_value: String| {
+                //         logout().await;
+                //     },
+                //     "Log out"
+                // }
             }
         }
     }
