@@ -3,6 +3,7 @@ mod api;
 use std::future::Future;
 
 use dioxus::prelude::*;
+use dioxus_free_icons::{icons::hi_solid_icons::HiChevronDown, Icon};
 use dioxus_primitives::dropdown_menu::{
     DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger,
 };
@@ -490,8 +491,15 @@ fn UserMenuLoggedIn() -> Element {
             },
             class: "relative inline-block",
             DropdownMenuTrigger {
-                class: format!("flex rounded-md px-1 py-1 font-bold hover:bg-gray-400 {button_dynamic_style}"),
+                class: format!("flex items-center rounded-md px-1 py-1 font-bold hover:bg-gray-400 {button_dynamic_style}"),
                 {USERNAME()}
+                Icon {
+                    class: "w-5 h-5",
+                    // width: 20,
+                    // height: 20,
+                    fill: "black",
+                    icon: HiChevronDown,
+                }
             }
             DropdownMenuContent {
                 class: format!("{animated_classes} absolute left-0 w-56 origin-top-right bg-white rounded-md px-1 py-1 shadow-lg ring-1 ring-black/5 focus:outline-none"),
